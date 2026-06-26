@@ -1,6 +1,22 @@
 const DATA = {
   projects: [
     {
+      title: "Audio Scene State Observer",
+      description: "A real-time system that listens to the acoustic environment, classifies it into one of 10 urban scene categories using a trained GMM + HMM pipeline, and automatically applies a scene-appropriate IIR filter to suppress background noise and enhance speech intelligibility.",
+      tags: ["ML", "Signal Processing"],
+      github: "https://github.com/more-piyush/audio-scene-observer",
+      featured: true
+    },
+
+    {
+      title: "PGM State Observer",
+      description: "This very site! A clean, responsive portfolio built with plain HTML, CSS, and JavaScript. No frameworks.",
+      tags: ["ML", "RL", "Agentic-AI"],
+      github: "https://github.com/more-piyush/State-Observer",
+      featured: true
+    },
+
+    {
       title: "Portfolio Website",
       description: "This very site! A clean, responsive portfolio built with plain HTML, CSS, and JavaScript. No frameworks.",
       tags: ["HTML", "CSS", "JavaScript"],
@@ -9,13 +25,7 @@ const DATA = {
       featured: true
     },
 
-    {
-      title: "Audio Scene State Observer",
-      description: "A real-time system that listens to the acoustic environment, classifies it into one of 10 urban scene categories using a trained GMM + HMM pipeline, and automatically applies a scene-appropriate IIR filter to suppress background noise and enhance speech intelligibility.",
-      tags: ["ML", "Signal Processing"],
-      github: "https://github.com/more-piyush/audio-scene-observer",
-      featured: true
-    },
+    
   ],
 
   blogPosts: [
