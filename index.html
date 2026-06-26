@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Piyush More</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="container">
+      <a href="index.html" class="site-name">Piyush More</a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html" class="active">Home</a></li>
+          <li><a href="projects.html">Projects</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="resume.html">Resume</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </nav>
+      <div class="topbar-actions">
+        <button class="topbar-btn" id="themeToggle" aria-label="Toggle theme">Dark</button>
+        <button class="hamburger" id="hamburger" aria-label="Menu">&#9776;</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="sidebar-overlay" id="sidebarOverlay">
+    <div class="sidebar">
+      <div class="sidebar-logo">Piyush More</div>
+      <ul class="sidebar-nav">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="projects.html">Projects</a></li>
+        <li><a href="blog.html">Blog</a></li>
+        <li><a href="resume.html">Resume</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <main>
+    <div class="page">
+      <div class="hero">
+        <h1 class="page-title">Piyush More</h1>
+        <p class="page-description">
+          Developer. I build clean, functional, and thoughtful digital experiences.
+          Currently exploring full-stack development and open source.
+        </p>
+        <div class="hero-meta">
+          <span>India</span>
+          <a href="https://github.com/morepiyush" target="_blank">GitHub</a>
+          <a href="mailto:morepiyush1403@gmail.com">Email</a>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <h2 class="heading-2">Projects</h2>
+      <ul class="project-list" id="featuredProjects"></ul>
+      <a href="projects.html" class="text-link">All projects &rarr;</a>
+
+      <hr class="divider">
+
+      <h2 class="heading-2">Writing</h2>
+      <ul class="blog-list" id="recentPosts"></ul>
+      <a href="blog.html" class="text-link">All posts &rarr;</a>
+
+      <hr class="divider">
+
+      <h2 class="heading-2">Skills</h2>
+      <div id="skillsGrid"></div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <p>Piyush More &middot; 2026</p>
+  </footer>
+
+  <script src="js/data.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

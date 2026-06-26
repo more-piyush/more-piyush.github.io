@@ -1,0 +1,33 @@
+<h2>The Big Three</h2>
+<p>These three methods handle 90% of array transformations:</p>
+
+<h3>map()</h3>
+<p>Transform every element in an array:</p>
+<pre><code>const names = users.map(user => user.name);
+// ["Alice", "Bob", "Charlie"]</code></pre>
+
+<h3>filter()</h3>
+<p>Keep only elements that pass a test:</p>
+<pre><code>const adults = users.filter(user => user.age >= 18);</code></pre>
+
+<h3>reduce()</h3>
+<p>Collapse an array into a single value:</p>
+<pre><code>const total = prices.reduce((sum, price) => sum + price, 0);</code></pre>
+
+<h2>Handy Helpers</h2>
+<ul>
+  <li><code>find()</code> — returns the first match</li>
+  <li><code>some()</code> — true if any element passes</li>
+  <li><code>every()</code> — true if all elements pass</li>
+  <li><code>includes()</code> — checks if a value exists</li>
+  <li><code>flat()</code> — flattens nested arrays</li>
+</ul>
+
+<h2>Chaining</h2>
+<p>The real power comes from chaining methods together:</p>
+<pre><code>const result = users
+  .filter(u => u.active)
+  .map(u => u.name)
+  .sort();</code></pre>
+
+<blockquote>When in doubt, reach for <code>map</code> and <code>filter</code> before writing a <code>for</code> loop.</blockquote>

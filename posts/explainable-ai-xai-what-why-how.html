@@ -1,0 +1,98 @@
+<p>As AI systems get deployed in high-stakes domains like medicine, law, and finance, one question keeps coming up: <em>why did the model make that decision?</em> This is the core problem that Explainable AI (XAI) tries to solve.</p>
+
+<p>This post is based on a research paper by Arrieta et al. published in <strong>Information Fusion (Elsevier)</strong>, which provides one of the most comprehensive surveys of XAI concepts, taxonomies, and challenges. Here are the key ideas.</p>
+
+<h2>The Black Box Problem</h2>
+
+<p>Earlier AI systems — rule-based, decision trees — were easy to interpret. You could trace exactly why a decision was made. But modern Deep Neural Networks (DNNs) have hundreds of layers and millions of parameters, making them effectively <strong>black boxes</strong>.</p>
+
+<p>This matters because:</p>
+<ul>
+  <li>In <strong>precision medicine</strong>, doctors need more than a binary prediction — they need reasoning</li>
+  <li>In <strong>regulated industries</strong> (finance, legal), decisions must be justifiable and auditable</li>
+  <li>There is a fundamental <strong>trade-off between performance and transparency</strong> — the more powerful the model, the harder it is to explain</li>
+</ul>
+
+<p>There is an emerging consensus: humans are reluctant to adopt techniques that are not directly interpretable, traceable, and trustworthy.</p>
+
+<h2>Terminology: Getting the Definitions Right</h2>
+
+<p>The paper makes an important distinction between terms that are often used interchangeably:</p>
+
+<ul>
+  <li><strong>Understandability</strong> — can a human understand how the model works, without needing its internals explained?</li>
+  <li><strong>Interpretability</strong> — the ability to explain or provide meaning in understandable terms (a passive property of the model)</li>
+  <li><strong>Explainability</strong> — an active characteristic: any action or procedure taken to clarify a model's internal function</li>
+  <li><strong>Transparency</strong> — a model is transparent if it is understandable by itself</li>
+</ul>
+
+<p>The key insight: <em>explainability depends on the audience</em>. A technical explanation sufficient for an ML engineer may be meaningless to a doctor or a judge. The paper defines XAI as:</p>
+
+<blockquote>Given a certain audience, explainability refers to the details and reasons a model gives to make its functioning clear or easy to understand.</blockquote>
+
+<h2>Why Do We Need Explainability?</h2>
+
+<p>Interpretability improves a model's real-world viability for three core reasons:</p>
+
+<ol>
+  <li><strong>Bias detection</strong> — helps detect and correct bias in training data</li>
+  <li><strong>Robustness</strong> — highlights potential adversarial perturbations that could flip predictions</li>
+  <li><strong>Causality assurance</strong> — guarantees that only meaningful variables influence the output</li>
+</ol>
+
+<h2>What Purposes Does XAI Serve?</h2>
+
+<p>The paper identifies several goals that motivate XAI research:</p>
+
+<ul>
+  <li><strong>Trustworthiness</strong> — confidence that a model will act as intended (though a trustworthy model is not necessarily explainable on its own)</li>
+  <li><strong>Causality</strong> — finding causal relationships among data variables, not just correlations</li>
+  <li><strong>Transferability</strong> — understanding a model well enough to reuse its knowledge for other problems</li>
+  <li><strong>Informativeness</strong> — giving users enough information to relate their decisions to the model's output</li>
+  <li><strong>Confidence</strong> — ensuring stability and robustness before trusting interpretations</li>
+  <li><strong>Fairness</strong> — visualizing what relations affect a result, enabling ethical analysis</li>
+  <li><strong>Accessibility</strong> — helping non-technical users engage with ML models</li>
+  <li><strong>Privacy awareness</strong> — understanding what data the model has captured internally to prevent privacy breaches</li>
+</ul>
+
+<h2>How: Transparent Models vs. Post-hoc Techniques</h2>
+
+<p>The paper draws a fundamental distinction between two approaches to explainability:</p>
+
+<h3>1. Transparent Models (Interpretable by Design)</h3>
+
+<p>These models have three levels of transparency:</p>
+
+<ul>
+  <li><strong>Simulatability</strong> — can a human mentally simulate the model? Simple linear models qualify; complex rule systems do not</li>
+  <li><strong>Decomposability</strong> — can each part (input, parameter, calculation) be individually explained?</li>
+  <li><strong>Algorithmic transparency</strong> — can the user understand the full process from input to output? (e.g., a linear model's error surface can be reasoned about)</li>
+</ul>
+
+<h3>2. Post-hoc Explainability (Explaining Black Boxes After Training)</h3>
+
+<p>For models that are not interpretable by design, these techniques add explainability after the fact:</p>
+
+<ul>
+  <li><strong>Text explanations</strong> — generating natural language or symbolic descriptions of model behavior</li>
+  <li><strong>Visual explanations</strong> — dimensionality reduction and visualization techniques to show model behavior</li>
+  <li><strong>Local explanations</strong> — explaining specific predictions rather than the whole model (e.g., LIME)</li>
+  <li><strong>Explanations by example</strong> — extracting representative data examples that capture the model's internal relationships</li>
+  <li><strong>Explanations by simplification</strong> — rebuilding a simpler model that approximates the original while being more interpretable</li>
+  <li><strong>Feature relevance</strong> — computing relevance scores for each variable to show which features matter most</li>
+</ul>
+
+<h2>The Road to Responsible AI</h2>
+
+<p>The paper concludes with the concept of <strong>Responsible AI</strong> — a methodology for deploying AI at scale with fairness, explainability, and accountability at its core. The key principles:</p>
+
+<ul>
+  <li>Fairness, accountability, and privacy must be considered alongside performance</li>
+  <li>Explainability and privacy/security should be designed in together, not bolted on</li>
+  <li>There are real tensions between explainability and confidentiality — explaining a model's internals to unauthorized parties can compromise data privacy</li>
+</ul>
+
+<p>XAI is not just a technical challenge — it is a prerequisite for AI systems that society can trust, audit, and hold accountable.</p>
+
+<hr>
+<p><em>Based on: "Explainable Artificial Intelligence (XAI): Concepts, Taxonomies, Opportunities and Challenges toward Responsible AI" by Arrieta et al., Information Fusion, Elsevier.</em></p>
