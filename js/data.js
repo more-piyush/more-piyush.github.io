@@ -18,6 +18,8 @@ const DATA = {
 
     {
       title: "Portfolio Website",
+      description: "A minimalist personal portfolio built with plain HTML, CSS, and JavaScript. No frameworks, no build step — just clean, fast static pages.",
+      tags: ["Web"],
       github: "https://github.com/more-piyush/more-piyush.github.io",
       live: "https://more-piyush.github.io",
       featured: true
