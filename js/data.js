@@ -18,8 +18,8 @@ const DATA = {
 
     {
       title: "Portfolio Website",
-      description: "This very site! A clean, responsive portfolio built with plain HTML, CSS, and JavaScript. No frameworks.",
-      tags: ["HTML", "CSS", "JavaScript"],
+      description: "A probabilistic state observer for web-automation AI agents, with a full reinforcement-learning benchmark that quantifies the value of belief-based state estimation over raw observation signals. The observer sits between a browser (Playwright) and a decision-making agent, maintaining a Dynamic Bayesian Network (DBN) belief over the latent state of a web page and gating actions until the page is confidently 'READY'.",
+      tags: ["ML", "RL"],
       github: "https://github.com/more-piyush/more-piyush.github.io",
       live: "https://more-piyush.github.io",
       featured: true
