@@ -8,6 +8,14 @@ const DATA = {
       live: "https://more-piyush.github.io",
       featured: true
     },
+
+    {
+      title: "Audio Scene State Observer",
+      description: "A real-time system that listens to the acoustic environment, classifies it into one of 10 urban scene categories using a trained GMM + HMM pipeline, and automatically applies a scene-appropriate IIR filter to suppress background noise and enhance speech intelligibility.",
+      tags: ["ML", "Signal Processing"],
+      github: "https://github.com/more-piyush/audio-scene-observer",
+      featured: true
+    },
   ],
 
   blogPosts: [
