@@ -199,6 +199,6 @@ function timelineHTML(item) {
     '<h3>' + item.title + '</h3>' +
     '<span class="subtitle">' + item.company + '</span>' +
     '<p class="date">' + item.date + '</p>' +
-    '<p>' + item.description + '</p>' +
+    '<div class="timeline-desc">' + item.description + '</div>' +
     '</div>';
 }

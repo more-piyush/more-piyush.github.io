@@ -60,16 +60,37 @@ const DATA = {
   experience: [
     {
       title: "Research Intern",
-      company: "IIT Delhi",
-      date: "Jan 2026 — Present",
-      description: "'Building internal tools and working on the frontend with React. Contributing to code reviews and writing unit tests.'"
+      company: "Monash University",
+      date: "Jul 2024 - Sept 2025",
+      description:
+                    "<ul>" +
+                    "<li>Leading research on incremental learning and continual learning under Prof. Arghya Pal, developing models for efficient compression and recurrence generation in time series and sequential data.</li>" +
+                    "<li>Designing learning frameworks to improve local performance and mitigate forgetting in sequential data processing. </li>" +
+                    "<li>Contributing to the development of codebook-based approaches for quick searches and efficient data compression, optimizing performance in input-dependent tasks.</li>" +
+                    "</ul>"
     },
     {
       title: "Research Intern",
-      company: "Monash University",
-      date: "Jun 2025 — Dec 2025",
-      description: "Designed and developed websites for local businesses. Focused on responsive design and performance optimization."
-    }
+      company: "IIT Patna",
+      date: "May 2024 - July 2025",
+      description:
+                    "<ul>" +
+                    "<li>Collaborating on advanced research in Self-Supervised Contrastive Learning under Prof. Maheshkumar Kolekar to enhance representation learning for deep learning models.</li>" +
+                    "<li>Designing models to address shape bias by manipulating low-level texture representation while preserving semantic content for improved generalization. </li>" +
+                    "<li>Implemented and optimized these projects on Linux-based High-Performance Computing (HPC) clusters, leveraging parallelization and distributed training for large-scale experimentation. </li>" +
+                    "</ul>"
+    },
+    {
+      title: "Research Intern",
+      company: "IIT Delhi",
+      date: "Feb 2025 - May 2025",
+      description:
+                    "<ul>" +
+                    "<li>CConducted advanced research in Computer Vision, focusing on Federated Semi-Supervised Learning, Multimodal Self Supervised Learning, and the integration of Robotics with Gaussian Splatting. </li>" +
+                    "<li>Analyzed model generalization under out-of-distribution conditions (COCO-O, MAUD) and evaluated robotic manipulation performance with noisy, incomplete data.  </li>" +
+                    "<li>Enhancing model performance for better transferability by focusing on semantic consistency and optimizing learning outcomes in complex deep learning systems. </li>" +
+                    "</ul>"
+    },
   ],
 
   education: [
