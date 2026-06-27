@@ -41,32 +41,32 @@ const DATA = {
   skills: [
     {
       category: "Languages",
-      items: ["JavaScript", "Python", "HTML", "CSS", "SQL"]
+      items: ["Python", "Matlab"]
     },
     {
-      category: "Frameworks & Libraries",
-      items: ["React", "Node.js", "Express", "Tailwind CSS"]
+      category: "Frameworks",
+      items: ["Data Warehousing", "PySpark", "OpenCV" , "Tensorflow" , "PyTorch" , "Keras" , "NLTK" ]
     },
     {
       category: "Tools & Platforms",
       items: ["Git", "GitHub", "VS Code", "Linux", "Docker"]
     },
     {
-      category: "Databases",
-      items: ["MongoDB", "PostgreSQL", "SQLite"]
+      category: "Libraries",
+      items: [" Numpy", "Pandas", "Matplotlib", "Seaborn" , "Scikit Learn"]
     }
   ],
 
   experience: [
     {
-      title: "Software Developer Intern",
-      company: "Tech Company",
+      title: "Research Intern",
+      company: "IIT Delhi",
       date: "Jan 2026 — Present",
-      description: "Building internal tools and working on the frontend with React. Contributing to code reviews and writing unit tests."
+      description: "'Building internal tools and working on the frontend with React. Contributing to code reviews and writing unit tests.'"
     },
     {
-      title: "Freelance Web Developer",
-      company: "Self-Employed",
+      title: "Research Intern",
+      company: "Monash University",
       date: "Jun 2025 — Dec 2025",
       description: "Designed and developed websites for local businesses. Focused on responsive design and performance optimization."
     }
@@ -74,10 +74,17 @@ const DATA = {
 
   education: [
     {
-      title: "Bachelor of Technology",
-      company: "University Name",
-      date: "2022 — 2026",
-      description: "Computer Science & Engineering. Coursework in data structures, algorithms, databases, and web development."
+      title: "Masters in Electrical Engineering",
+      company: "New York University",
+      date: "2025 - 2027",
+      description: ""
+    },
+
+    {
+      title: "Bachelor of Engineering, Electronics and Telecommunication (with Honors in AI ML)",
+      company: "SCTR's Pune Institute of Compute Technology",
+      date: "2021 — 2025",
+      description: ""
     }
   ]
 };
