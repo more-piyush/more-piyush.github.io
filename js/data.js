@@ -60,6 +60,15 @@ const DATA = {
   experience: [
     {
       title: "Research Intern",
+      company: "New York University",
+      date: "Jun 2026 - Present",
+      description:
+                    "<ul>" +
+                    "<li>Leading research on making applications with LIDAR Point Clouds computation efficient under Prof. Debra Laefer and Prof. Kevin Mcilhany.</li>" +
+                    "</ul>"
+    },
+    {
+      title: "Research Intern",
       company: "Monash University",
       date: "Jul 2024 - Sept 2025",
       description:
@@ -86,7 +95,7 @@ const DATA = {
       date: "Feb 2025 - May 2025",
       description:
                     "<ul>" +
-                    "<li>CConducted advanced research in Computer Vision, focusing on Federated Semi-Supervised Learning, Multimodal Self Supervised Learning, and the integration of Robotics with Gaussian Splatting. </li>" +
+                    "<li>Conducted advanced research in Computer Vision, focusing on Federated Semi-Supervised Learning, Multimodal Self Supervised Learning, and the integration of Robotics with Gaussian Splatting. </li>" +
                     "<li>Analyzed model generalization under out-of-distribution conditions (COCO-O, MAUD) and evaluated robotic manipulation performance with noisy, incomplete data.  </li>" +
                     "<li>Enhancing model performance for better transferability by focusing on semantic consistency and optimizing learning outcomes in complex deep learning systems. </li>" +
                     "</ul>"
