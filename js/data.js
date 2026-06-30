@@ -107,15 +107,17 @@ const DATA = {
       title: "Masters in Electrical Engineering",
       company: "New York University",
       date: "2025 - 2027",
-      description: "<li>Coursework:</li>" +
+      description: "<ul>" +
+                   "<li>Coursework:</li>" +
                    "<li>Fall 2025: Machine Learning, Real-Time Embedded System, Digital Signal Processing</li>"+
-                   "<li>Spring 2026: Machine Learning Operations, Digital Signal Processing Laboratory, Probability and Stochastic Processes</li>"
+                   "<li>Spring 2026: Machine Learning Operations, Digital Signal Processing Laboratory, Probability and Stochastic Processes</li>" +
+                   "</ul>"
     },
 
     {
-      title: "<li>Bachelor of Engineering, Electronics and Telecommunication</li>" +
+      title: "<ul>" + "<li>Bachelor of Engineering, Electronics and Telecommunication</li>" +
              "<li>Honors in Artificial Intelligence and Machine Learning</li>",
-      company: "SCTR's Pune Institute of Compute Technology",
+      company: "SCTR's Pune Institute of Compute Technology" + "</ul>",
       date: "2021 — 2025",
       description: ""
     }
