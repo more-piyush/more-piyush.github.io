@@ -107,7 +107,9 @@ const DATA = {
       title: "Masters in Electrical Engineering",
       company: "New York University",
       date: "2025 - 2027",
-      description: ""
+      description: "Coursework:" +
+                   "Fall 2025: Machine Learning, Real-Time Embedded System, Digital Signal Processing"+
+                   "Spring 2026: Machine Learning Operations, Digital Signal Processing Laboratory, Probability and Stochastic Processes"
     },
 
     {
