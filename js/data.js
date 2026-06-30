@@ -64,7 +64,7 @@ const DATA = {
       date: "Jun 2026 - Present",
       description:
                     "<ul>" +
-                    "<li>Leading research on making applications with LIDAR Point Clouds computation efficient under Prof. Debra Laefer and Prof. Kevin Mcilhany.</li>" +
+                    "<li>Leading research on making applications with LIDAR Point Clouds computationally efficient under Prof. Debra Laefer and Prof. Kevin Mcilhany.</li>" +
                     "</ul>"
     },
     {
@@ -120,3 +120,4 @@ const DATA = {
     }
   ]
 };
+
