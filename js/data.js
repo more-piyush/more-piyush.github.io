@@ -1,6 +1,13 @@
 const DATA = {
   projects: [
     {
+      title: "PGM State Observer",
+      description: "SpendSense is an MLOps platform that extends Firefly III with automated transaction categorization and spending trend/anomaly detection, covering the full lifecycle from data ingestion through training, canary-gated serving, and continuous feedback-driven retraining on Kubernetes.",
+      tags: ["MLOPs"],
+      github: "https://github.com/more-piyush/SpendSense",
+      featured: true
+    },
+    {
       title: "Audio Scene State Observer",
       description: "A real-time system that listens to the acoustic environment, classifies it into one of 10 urban scene categories using a trained GMM + HMM pipeline, and automatically applies a scene-appropriate IIR filter to suppress background noise and enhance speech intelligibility.",
       tags: ["ML", "Signal Processing"],
