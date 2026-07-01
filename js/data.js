@@ -115,8 +115,8 @@ const DATA = {
     },
 
     {
-      title: "<ul>" + "<li>Bachelor of Engineering, Electronics and Telecommunication</li>" +
-             "<li>Honors in Artificial Intelligence and Machine Learning</li>",
+      title: "Bachelor of Engineering, Electronics and Telecommunication" +
+             "<br>Honors in Artificial Intelligence and Machine Learning</br>",
       company: "SCTR's Pune Institute of Compute Technology" + "</ul>",
       date: "2021 — 2025",
       description: ""
