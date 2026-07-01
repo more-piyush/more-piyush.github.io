@@ -1,7 +1,7 @@
 const DATA = {
   projects: [
     {
-      title: "PGM State Observer",
+      title: "SpendSense",
       description: "SpendSense is an MLOps platform that extends Firefly III with automated transaction categorization and spending trend/anomaly detection, covering the full lifecycle from data ingestion through training, canary-gated serving, and continuous feedback-driven retraining on Kubernetes.",
       tags: ["MLOPs"],
       github: "https://github.com/more-piyush/SpendSense",
