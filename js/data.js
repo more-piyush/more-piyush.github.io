@@ -16,6 +16,14 @@ const DATA = {
     },
 
     {
+      title: "STAMP-RI",
+      description: "A deep learning pipeline for Diabetic Retinopathy (DR) grading that addresses CNN texture bias through multi-stage texture manipulation, contrastive learning, and online negative mining. The system learns shape-invariant retinal image representations that generalize across clinical sites and imaging conditions.",
+      tags: ["ML"],
+      github: "https://github.com/more-piyush/STAMP-RI",
+      featured: true
+    },
+
+    {
       title: "PGM State Observer",
       description: "A probabilistic state observer for web-automation AI agents, with a full reinforcement-learning benchmark that quantifies the value of belief-based state estimation over raw observation signals. The observer sits between a browser (Playwright) and a decision-making agent, maintaining a Dynamic Bayesian Network (DBN) belief over the latent state of a web page and gating actions until the page is confidently 'READY'.",
       tags: ["ML", "RL", "Agentic-AI"],
