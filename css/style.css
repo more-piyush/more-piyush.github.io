@@ -508,10 +508,18 @@ main { flex: 1; }
 
 .blog-post .post-body .poem {
   font-family: var(--serif);
-  font-size: 1.0625rem;
-  line-height: 2;
   color: var(--text);
   margin: 1rem 0;
+}
+
+.blog-post .post-body .poem p {
+  font-size: 1.0625rem;
+  line-height: 2;
+  margin: 0 0 1.75rem;
+}
+
+.blog-post .post-body .poem p:last-child {
+  margin-bottom: 0;
 }
 
 /* ───── Timeline ───── */
