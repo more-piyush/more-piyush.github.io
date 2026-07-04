@@ -506,6 +506,14 @@ main { flex: 1; }
   margin: 2rem 0;
 }
 
+.blog-post .post-body .poem {
+  font-family: var(--serif);
+  font-size: 1.0625rem;
+  line-height: 2;
+  color: var(--text);
+  margin: 1rem 0;
+}
+
 /* ───── Timeline ───── */
 .timeline {
   margin: 0.5rem 0 1rem;

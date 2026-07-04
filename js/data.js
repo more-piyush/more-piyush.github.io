@@ -51,6 +51,14 @@ const DATA = {
       excerpt: "A deep dive into Explainable AI — the concepts, taxonomy, and challenges behind making AI models transparent and trustworthy.",
       tags: ["AI/ML", "Research"],
       category: "Technical"
+    },
+    {
+      slug: "life-is-strange",
+      title: "Life is Strange!",
+      date: "2026-07-03",
+      excerpt: "A poem on pursuit, presence, and the quiet marks that define us.",
+      tags: ["Poetry"],
+      category: "Creative Writing"
     }
   ],
 
