@@ -49,7 +49,8 @@ const DATA = {
       title: "Explainable AI (XAI): What It Is, Why It Matters, and How It Works",
       date: "2026-05-29",
       excerpt: "A deep dive into Explainable AI — the concepts, taxonomy, and challenges behind making AI models transparent and trustworthy.",
-      tags: ["AI/ML", "Research"]
+      tags: ["AI/ML", "Research"],
+      category: "Technical"
     }
   ],
 

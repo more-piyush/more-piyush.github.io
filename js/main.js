@@ -105,9 +105,19 @@ document.addEventListener('DOMContentLoaded', function () {
     recentEl.innerHTML = DATA.blogPosts.slice(0, 3).map(blogListItemHTML).join('');
   }
 
-  var allPostsEl = document.getElementById('allPosts');
-  if (allPostsEl) {
-    allPostsEl.innerHTML = DATA.blogPosts.map(blogListItemHTML).join('');
+  var blogSectionsEl = document.getElementById('blogSections');
+  if (blogSectionsEl) {
+    var categories = ['Technical', 'Non-Technical', 'Creative Writing'];
+    blogSectionsEl.innerHTML = categories.map(function (cat) {
+      var posts = DATA.blogPosts.filter(function (p) { return p.category === cat; });
+      var body = posts.length
+        ? '<ul class="blog-list">' + posts.map(blogListItemHTML).join('') + '</ul>'
+        : '<p class="blog-empty">No posts yet.</p>';
+      return '<section class="blog-section">' +
+        '<h2 class="heading-2">' + cat + '</h2>' +
+        body +
+        '</section>';
+    }).join('');
   }
 
   // ───── Single Blog Post ─────

@@ -388,6 +388,16 @@ main { flex: 1; }
   line-height: 1.6;
 }
 
+.blog-section:first-child .heading-2 {
+  margin-top: 1.5rem;
+}
+
+.blog-empty {
+  font-size: 0.8125rem;
+  color: var(--text-light);
+  font-style: italic;
+}
+
 /* ───── Blog Post ───── */
 .blog-post {
   max-width: var(--max-width);
