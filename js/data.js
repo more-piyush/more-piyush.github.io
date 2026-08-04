@@ -96,7 +96,9 @@ const DATA = {
       date: "Jun 2026 - Present",
       description:
                     "<ul>" +
-                    "<li>Leading research on making applications with LIDAR Point Clouds computationally efficient under Prof. Debra Laefer and Prof. Kevin Mcilhany, with the focus on creating a rigourous benchmarking and evaluation system.</li>" +
+                    "<li>Conducted advanced research in Aerial LiDAR Point Clouds, under Prof. Debra Laefer, NYU CUSP and Prof. Kevin Mcilhany, USNA.</li>" +
+                    "<li>Engineered an end-to-end LiDAR point-cloud processing pipeline, handling 1M+ points via multi-scale spacial partitioning, sparse block-adjacency graph, and reordering for efficient computation at scale.</li>" +
+                    "<li>Designed an unsupervised geometric analysis layer applying graph signal processing for object segmentation, edge detection without labelled data.</li>" +
                     "</ul>"
     },
     {
