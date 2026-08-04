@@ -61,6 +61,14 @@ const DATA = {
       category: "Non-Technical"
     },
     {
+      slug: "silence-has-a-voice",
+      title: "Silence Has a Voice",
+      date: "2026-08-03",
+      excerpt: "A poem on solitude, stillness, and the quiet peace of self-reflection.",
+      tags: ["Poetry"],
+      category: "Creative Writing"
+    },
+    {
       slug: "life-is-strange",
       title: "Life is Strange!",
       date: "2026-07-03",
