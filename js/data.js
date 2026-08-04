@@ -53,6 +53,14 @@ const DATA = {
       category: "Technical"
     },
     {
+      slug: "strategy-vs-tactics",
+      title: "Strategy vs. Tactics",
+      date: "2026-08-03",
+      excerpt: "On the difference between strategy and tactics — and why you need both to actually reach your goals.",
+      tags: ["Strategy", "Reflection"],
+      category: "Non-Technical"
+    },
+    {
       slug: "life-is-strange",
       title: "Life is Strange!",
       date: "2026-07-03",
