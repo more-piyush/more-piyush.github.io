@@ -53,6 +53,14 @@ const DATA = {
       category: "Technical"
     },
     {
+      slug: "true-leadership",
+      title: "True Leadership",
+      date: "2026-08-07",
+      excerpt: "On trust and accountability — the four things real leaders do: share the credit and absorb the pressure.",
+      tags: ["Leadership", "Reflection"],
+      category: "Non-Technical"
+    },
+    {
       slug: "strategy-vs-tactics",
       title: "Strategy vs. Tactics",
       date: "2026-08-03",
