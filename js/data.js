@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "knowledge-execution-loop",
+      title: "The Knowledge–Execution Loop",
+      date: "2026-08-27",
+      excerpt: "Knowledge only becomes valuable when it turns into execution — on putting your work out, building ordinary habits over an extraordinary number of times, and engineering your luck.",
+      tags: ["Growth", "Reflection"],
+      category: "Non-Technical"
+    },
+    {
       slug: "explainable-ai-xai-what-why-how",
       title: "Explainable AI (XAI): What It Is, Why It Matters, and How It Works",
       date: "2026-05-29",
