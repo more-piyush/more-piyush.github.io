@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "notes-on-evolutionary-psychology",
+      title: "Notes on Evolutionary Psychology",
+      date: "2026-08-28",
+      excerpt: "Notes on the four key questions that organize evolutionary psychology — and how the field ties together findings from across the sciences of the mind.",
+      tags: ["Psychology", "Notes"],
+      category: "Non-Technical"
+    },
+    {
       slug: "knowledge-execution-loop",
       title: "The Knowledge–Execution Loop",
       date: "2026-08-27",
