@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "deep-omni-supervised-learning-rib-fracture-detection",
+      title: "Deep Omni-Supervised Learning for Rib Fracture Detection",
+      date: "2026-09-03",
+      excerpt: "Notes on ORF-Netv2 — an omni-supervised object detection network that unifies fully-labeled, weakly-labeled, and unlabeled data for rib fracture detection, using a co-training based dynamic label assignment strategy.",
+      tags: ["AI/ML", "Medical Imaging", "Research"],
+      category: "Technical"
+    },
+    {
       slug: "llms-for-asr-systems",
       title: "LLMs for ASR Systems",
       date: "2026-09-03",

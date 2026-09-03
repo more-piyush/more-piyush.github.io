@@ -1,0 +1,101 @@
+<p>Notes on an omni-supervised object detection framework, ORF-Netv2, for rib fracture detection from chest radiology images.</p>
+
+<h2>Abstract</h2>
+
+<p>Developing DL-based object detection models requires a huge amount of bounding box annotation. However, annotating medical data is time-consuming and expertise-demanding, thereby making it extremely infeasible to obtain large amounts of fine grained annotations. This poses a pressing need for developing label-efficient detection models to alleviate radiologist labeling burden.</p>
+
+<p>The literature on Object Detection has witnessed an increase of weakly-supervised and semi-supervised approaches, yet still lacks a unified framework that leverages various forms of fully-labeled, weakly labeled, and unlabeled data.</p>
+
+<p>In this paper, the authors have presented a novel omni-supervised object detection network, ORF-Netv2, to leverage as much as supervision as possible. A multi-branch omni-supervised detection head is introduced, where each branch is trained with a specific type of supervision.</p>
+
+<p>A co-training-based dynamic label assignment strategy is then proposed to enable flexible and robust learning from the weakly-labeled and unlabeled data.</p>
+
+<p>Extensive evaluation was conducted for the proposed framework with three rib fracture datasets on both chest CT and Xray. By leveraging all forms of supervision, ORF-Netv2 achieves mAPs of 34.7, 44.7, and 19.4 on the three datasets, respectively, surpassing the baseline detector which uses only box annotations by mAP gains of 3.8, 4.8, and 5.0, respectively.</p>
+
+<h2>Introduction</h2>
+
+<p>The diagnosis of rib fractures helps determine the severity of the trauma. Therefore, accurate recognition and location of rib fractures are of significant value for preventing mortality and improving the outcome. However these studies rely on a large number of fine grained annotations (e.g. lesion bounding boxes or masks) on rib fractures which is labor-intensive and expert-demanding.</p>
+
+<p>To alleviate the labeling burden, weakly supervised or semi-supervised algorithms have been proposed to leverage data that can be acquired more easily to improve the detection performance under limited annotation budget. Weakly supervised object detection utilizes coarser-grained labels such as image-level labels or dot labels, which allows efficient labeling policies. Semi-supervised object detection combines data with fine grained labels and unlabeled data, which can improve the detection accuracy without any further labeling efforts.</p>
+
+<p>Practical applications have usually faced various forms of annotations such box-labeled, mask-labeled, dot-labeled, or unlabeled, given the varied labeling criteria and budgets across clinical centers. To take the advantage of as much of the supervision available, omni-supervised learning was proposed to develop a unified framework that can be learned from data with annotation of various granularities.</p>
+
+<p>The existing omni-supervised object detection methods were built on generating pseudo labels, these methods would introduce unnecessary false label assignment as the lesions do not have clear boundaries.</p>
+
+<p>For dense prediction tasks, each pixel is regarded as a training sample, and object detection requires precise label assignment for each training sample. Hence there is no guarantee that all samples can be clearly divided into positives and negatives given even the mask labels. As a result, pseudo bounding box based methods cannot provide precise and robust supervision signals to guide the learning on weakly-labeled or unlabeled data.</p>
+
+<p>To tackle the aforementioned challenge, we propose co-training guided label assignment strategies for omni-supervised learning, which eliminates the need to generate pseudo bounding boxes as well as enable robust learning from weakly-labeled and unlabeled data.</p>
+
+<p>In previous work, the authors had introduced ORF-Net, a framework that can utilize different granularities of supervision through an omni-supervised detection head. In this work, the authors proposed ORF-Netv2 to further improve the omni-supervised learning framework. Specifically, compared with ORF-Net, we (1) improved label assignment strategy from ORF-Net to co-training based dynamic label assignment, where the positive and negative attribute of a pixel is automatically learned by the model itself instead of being manually assigned (2) extended ORF-Net to be compatible with more types of annotations by adding a mask branch.</p>
+
+<p>Authors conducted extensive experiments, demonstrating consistent improvements of ORF-Netv2 over other label-efficient approaches. Moreover, the authors also conducted budget aware experiments to uncover the best labeling policy under limited annotation budget based on the flexible architecture of ORF-Netv2.</p>
+
+<p>The contributions can be summarized as follows:</p>
+
+<ol>
+  <li>The proposed ORF-Netv2, a novel omni-supervised detection network supports simultaneously learning from data with various annotation granularities.</li>
+  <li>A novel co-training guided label assignment method is introduced, which provides a flexible and robust learning of fully-labeled, weakly-labeled and unlabelled data.</li>
+</ol>
+
+<h2>Related Works</h2>
+
+<h3>A. Label-Efficient Object Detection</h3>
+
+<p>To reduce the dependency of object detection models on fine grained annotations, label efficient learning is recently being utilized.</p>
+
+<p><strong>Weakly-supervised Learning (WSL)</strong> utilizes labels which are not exactly the task needed. WSL-based object detection usually utilizes image tags or points for model development. WSDDN proposed a two stream network that simultaneously learned classification and localization using image tags; Yang et. al introduced a framework that jointly optimized a multiple instance detector and a box regressor in an end-to-end manner; Some studies have proposed to jointly exploit fully labeled data and weakly labeled data to train models. For example Point DETR proposed a dot encoder applied to dot annotations, which established a one to one correspondence between dot annotations and objects; WSSOD introduced a pipeline that exploits fully labeled data with bounding boxes and weakly labeled data with multiple image level labels.</p>
+
+<p><strong>Semi-supervised Learning (SSL)</strong> utilizes fully-annotated data together with unlabelled data. SSL can be categorized into consistency-based and pseudo label based methods.</p>
+
+<p>The consistency-based methods inject consistency regularization on unlabeled data, encouraging producing robust predictions for different perturbed versions of the same data. For example, CSD introduced a regularization that the model should have symmetric predictions for the images and their flipped versions. Tang et. al proposed a proposal learning module with consistency regularization on both bounding box classification and regression prediction.</p>
+
+<p>The Pseudo-label methods involve creating pseudo labels for the unlabeled data. The pseudo labels are predictions made by the model that are treated as true labels. This teacher model is used to generate reasonable pseudo bounding boxes to guide the target model. For example, STAC (Self Training with Augmentation Consistency) leverages high confidence pseudo labels of the unlabeled images to train the model. Unbiased Teacher adopted focal loss, a loss function to address class imbalance by focusing on hard to classify examples caused by pseudo labels in SSL-based object detection.</p>
+
+<p><strong>Omni-supervised Learning (OSL)</strong> aims to simultaneously utilize different granularities of supervision. For example, UFO proposed a unified framework that learned different kinds of supervision in a multi-task manner, based on careful proposal refinement on the weakly labeled or unlabeled data to reject false-positive proposals. OXnet is an omni-supervised model for chest X-ray disease detection, which unified the box supervision and image-level supervision with a dual attention mechanism and utilized a soft focal loss to learn unlabeled data with a teacher model. Omni-DETR introduced an omni-supervised end-to-end transformer architecture with the student teacher framework, which supervised the model by generating pseudo labels for different weak labels through a bipartite matching-based filtering mechanism.</p>
+
+<p>WSL and SSL can largely reduce the labeling costs but lack the ability to simultaneously utilize all types of supervision. In order to overcome this problem, OSL was proposed to unify the learning from fully-labeled data, weakly labeled data and unlabeled data. The problem with OSL based models is that they are all based on pseudo labels, which can't provide precise supervision signals for learning to detect lesions without clear boundaries.</p>
+
+<h3>B. Label Assignment in Object Detection</h3>
+
+<p>Determining positive and negative pixels in an image is the fundamental step, called label assignment, for object detection. Label assignment strategy can be categorized into two groups: fixed label assignment and dynamic label assignment.</p>
+
+<p>Fixed label-based assignment methods adopt hand-crafted rules to sample positive and negative during the training stage. For example, Faster-RCNN assigned labels for proposals generated by the region proposal network with predefined IoU threshold. FCOS took pixels close to the center of the bounding box to be positive samples, and others to be negative samples. However, bounding boxes weren't able to describe clear boundaries and such hard assignments can lead to false positives and negatives.</p>
+
+<p>Dynamic Assignment, hence introduces to automatically define the pixel labels. For example, AutoAssign utilized an adaptive weighting mechanism to dynamically assign weights for each anchor by estimating the consistency matrix between the classification and localization scores. Li et al. proposed a dual weight label assignment scheme that dynamically assigned positive and negative weights to each anchor by estimating consistency and inconsistency matrices. These methods focus mainly on fully-supervised object detection and can't easily adapt to situations where fully labeled data is rare.</p>
+
+<h3>C. Label-efficient Object Detection in Medical Images</h3>
+
+<p>In comparison with natural images, the acquisition cost of fine grained data in medical images is more expensive as the annotation of lesions are laborious and expert-demanding. Recently, label efficient learning is widely used in medical image analysis to address the lack of finely annotated data.</p>
+
+<p>Wang et al. proposed an adaptive asymmetric label sharpening scheme to improve the effectiveness of knowledge distillation from image level data for the task of fracture detection. Chai et al. proposed a semi-supervised framework based on deep metric learning for cancer cell detection. Bakalo et al. presented a deep learning architecture capable of localizing and classifying medical abnormalities in mammograms under both weakly and semi-supervised settings. Wang et al. introduced a 3D semi-supervised detection framework that utilized the unlabeled data to boost the lesions detection performance in CT scans.</p>
+
+<h2>Methodology</h2>
+
+<h3>A. Overview of ORF-Netv2</h3>
+
+<p>The authors aim is to develop an object detector for rib fractures unifying the data with annotation of various granularities. The authors have considered general annotation types, with a box labeled dataset Db with a bounding box for each fracture, a mask labeled dataset Dm where each fracture is with a polygon mask, a dot labeled dataset Dd using a single dot to label each fracture, and an unlabeled dataset Du. The authors have proposed a framework that can support training based on a mixture of any of the above mentioned data.</p>
+
+<figure>
+  <img src="img/omni/fig-orfnetv2-framework.png" alt="Framework of ORF-Netv2: box, mask, dot, and unlabeled data pass through an FPN backbone into an omni-supervised detection head with a localization branch and four classification branches, each routed to a label-assignment module (LA-B, LA-M, LA-D, LA-U) that separates certain negatives, certain positives, and uncertain samples for the corresponding classification and localization losses.">
+  <figcaption>Framework of the proposed omni-supervised rib fracture detector ORF-Netv2. Figure from Chai et al., "Deep Omni-Supervised Learning for Rib Fracture Detection from Chest Radiology Images," IEEE Transactions on Medical Imaging.</figcaption>
+</figure>
+
+<p>ORF-Netv2 is based on FCOS (Fully Convolutional One Stage Object Detection), an anchor free object detector that learns in a fully convolutional per pixel prediction manner. It utilizes a Feature Pyramid Network to extract rich, multi-scale features from an input image. FPN generates a pyramid of feature maps at different scales, allowing the network to capture both fine details and broader contextual information.</p>
+
+<p>Then object classification and localization is performed with a novel omni-supervised detection head. The Omni-Supervised Head consists of the localization branch and the multiple classification branch. Localization branch for bounding box regression, predicting the coordinates of the bounding boxes around detected objects and multiple classification branches, each trained on different types of data. This approach enhances the network's ability to generalize for various datasets and improves robustness for object detection. Both the localization and classification branches follow a similar architectural pattern, consisting of five convolutional layers, including the final prediction layer.</p>
+
+<h3>B. Co-training based Sample Weighting</h3>
+
+<p>The pixel samples for all types of data can be divided into two classes: Certain Samples and Uncertain Samples.</p>
+
+<p>Certain samples can be clearly defined with positive and negative by the annotations. For Example, the pixels outside the bounding boxes and masks are certain negatives, and pixels labeled with dots are certain positives.</p>
+
+<p>Uncertain samples can't be clearly defined due to ambiguity of annotations. Specifically, these samples can be inside the bounding boxes or those beyond the labeled dots, or those unlabeled data.</p>
+
+<p>As a result, fixed label assignment strategy can lead to false positives and negatives and can't be flexibly transferred to weakly and unlabeled data. Dynamic Label Assignment can alleviate the challenge of ambiguous annotations by learning an automatic sample weighting policy.</p>
+
+<h2>References</h2>
+
+<ol>
+  <li>Zhizhong Chai, Luyang Luo, Huangjing Lin, Pheng-Ann Heng, Hao Chen. "Deep Omni-Supervised Learning for Rib Fracture Detection from Chest Radiology Images." IEEE Transactions on Medical Imaging.</li>
+</ol>
