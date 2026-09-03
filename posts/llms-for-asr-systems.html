@@ -153,6 +153,11 @@
 
 <p>In this work, authors extend GER benchmark to noisy conditions, as well as propose a Robust HyPoradise dataset with 113,000 hypotheses-transcription pairs from various ASR corpus in common noisy scenarios.</p>
 
+<figure>
+  <img src="img/asr/fig-ger-language-denoising.png" alt="GER + Language Denoising framework: noisy speech to ASR to N-best hypotheses, corrected by a frozen LLM with an adapter, guided by a language-noise embedding via knowledge distillation.">
+  <figcaption>GER + Language Denoising (ours). Figure from Hu et al., "Large Language Models are Efficient Learners of Noise-Robust Speech Recognition."</figcaption>
+</figure>
+
 <p>The idea is to map noisy speech features to a clean space before recognition, where speech enhancement denoising is a popular approach. Can we teach LLMs to denoise N-best hypotheses for GER, just like what robust ASR and speech enhancement do?</p>
 
 <p>Authors propose a solution is to incorporate audio noise information as a conditioner into LLM fine tuning to make it noise aware. However recent works have found out that directly introducing other modalities into LLM fine tuning could harm its stability and performance due to cross modality gap.</p>
@@ -185,6 +190,11 @@
 
 <p><strong>Overall Framework:</strong> First, noisy speech Xn, the pretrained ASR Model first transcribes it into N-best hypotheses Yn = {Y1, Y2, …. , Yn}, following that authors propose to extract a language space noise embedding Eln from the N-best list Yn to represent the noise conditions of source speech Xn. Noise embeddings measure the diversity of N-best hypotheses on both utterance and token levels, which perceives the noise information in input speech.</p>
 
+<figure>
+  <img src="img/asr/fig-overall-framework.png" alt="Overall framework: ASR beam search produces N-best hypotheses; utterance-level and token-level noise embeddings are extracted in language space, refined by a tuner via knowledge distillation from noisy audio, and fed with an instruction into the LLM adapter to predict the transcription.">
+  <figcaption>Overall framework of the proposed approach. Figure from Hu et al., "Large Language Models are Efficient Learners of Noise-Robust Speech Recognition."</figcaption>
+</figure>
+
 <p>Furthermore, to enhance its noise representation ability, authors have designed KD approach to distill the real noise information in source speech Xn to the extracted language space noise embedding Eln. Specifically we employ the audio embedding from ASR encoder.</p>
 
 <p>Further, we add an instruction onto the N-best hypotheses and sent them into LLM to predict the true transcription (i.e., GER), with the language embedding incorporated for denoising.</p>
@@ -206,17 +216,50 @@
 
 <p>Finally both Utterance-level and Token-level embeddings are combined to form the resultant noise embedding. Specifically, authors employ sentence-BERT to obtain the embeddings from raw text, which contains rich language-space semantic information.</p>
 
-<p><strong>Utterance-level Noise Embedding:</strong> Given N-best hypotheses Yn = {Y1, Y2, ….. , Yn}, we first obtain their sentence embeddings by SBERT encoder and then calculate their diversity, where Dsbert denotes the embedding size of SBERT extractor. It basically concatenates all the sentence embedding difference, resulting in an utterance-level noise embeddings, Yi ranks lower than Yj in the N-best hypotheses list, which thus presents lower confidence and worse transcription quality, i.e. more language noise.</p>
+<p><strong>Utterance-level Noise Embedding:</strong> Given N-best hypotheses Yn = {Y1, Y2, ….. , Yn}, we first obtain their sentence embeddings by SBERT encoder and then calculate their diversity, where Dsbert denotes the embedding size of SBERT extractor. It basically concatenates all the sentence embedding difference (Yi ranks lower than Yj in the N-best hypotheses list, which thus presents lower confidence and worse transcription quality, i.e. more language noise):</p>
+
+<figure class="equation">
+  <img src="img/asr/eq-utterance-noise.png" alt="Utterance-level noise embedding equation: E_LN^utt equals the concatenation of SBERT sentence-embedding differences for all i,j with i greater than j.">
+</figure>
+
+<figure class="equation">
+  <img src="img/asr/eq-embedding-diff.png" alt="Equation: SBERT embedding of Y_i minus SBERT embedding of Y_j, where i is greater than j.">
+</figure>
 
 <p><strong>Token-level Noise Embedding:</strong> Authors propose to extract token-level noise embedding that directly corresponds to the WER metric of ASR task. Similar to the calculation of the edit distance, we first forced-align the N-best hypotheses to the same length with zero padding. The aligned N-hypotheses clearly illustrates the token difference between different candidatures, where each utterances contains T tokens that comes from ASR vocabulary plus zero padding.</p>
 
-<p>Authors have designed an edit embedding to capture the token-level difference between the two hypotheses, which directly corresponds to their gap in final WER performance. We calculate the token-level noise embedding by summing up the edit embedding between different pairs of hypotheses in the N-best list. We employ SBERT again to extract the token embedding, as it can produce informative embeddings for both utterances and tokens.</p>
+<figure class="equation">
+  <img src="img/asr/eq-aligned-hypothesis.png" alt="Equation: aligned hypothesis Y_i^ali is a sequence of T tokens, each drawn from the ASR vocabulary V plus the zero-padding symbol.">
+</figure>
+
+<p>Authors have designed an edit embedding to capture the token-level difference between the two hypotheses, which directly corresponds to their gap in final WER performance. We calculate the token-level noise embedding by summing up the edit embedding between different pairs of hypotheses in the N-best list:</p>
+
+<figure class="equation">
+  <img src="img/asr/eq-token-noise.png" alt="Token-level noise embedding equation: E_LN^tok is the concatenation of edit embeddings over all hypothesis pairs, where each edit embedding sums the SBERT token-embedding differences across the T aligned tokens.">
+</figure>
+
+<p>We employ SBERT again to extract the token embedding, as it can produce informative embeddings for both utterances and tokens.</p>
 
 <p><strong>Audio Noise Distillation:</strong> After extracting the language-space noise embedding from N-best hypotheses, authors further propose an audio noise distillation approach via mutual information estimation to enhance its noise representation ability.</p>
 
-<p>Given two random variables X and Z, their MI can be calculated by KL divergence Dkl ( P || Q ). However, it is intractable to directly calculate MI, so we leverage an estimation method called Mutual Information Neural Estimation (MINE). MINE employs a statistics network parameterized to estimate neural information measure.</p>
+<p>Given two random variables X and Z, their MI can be calculated by KL divergence Dkl ( P || Q ):</p>
+
+<figure class="equation">
+  <img src="img/asr/eq-mutual-information.png" alt="Mutual information equation: I(X;Z) equals the KL divergence between the joint distribution P_XZ and the product of marginals P_X P_Z.">
+</figure>
+
+<p>However, it is intractable to directly calculate MI, so we leverage an estimation method called Mutual Information Neural Estimation (MINE). MINE employs a statistics network parameterized by <img src="img/asr/eq-statistics-network.png" alt="statistics network psi-theta mapping from X cross Z to the reals" style="height:1.1em;padding:0.05em 0.15em;vertical-align:middle;border:none;background:#fff;"> with <img src="img/asr/eq-theta.png" alt="theta belongs to Theta" style="height:1em;padding:0.05em 0.15em;vertical-align:middle;border:none;background:#fff;"> to estimate neural information measure:</p>
+
+<figure class="equation">
+  <img src="img/asr/eq-mine.png" alt="MINE estimator equation: I_Theta(X;Z) equals the supremum over theta of the expectation of psi_theta under the joint distribution minus the log of the expectation of e to the psi_theta under the product of marginals.">
+</figure>
 
 <p>In practice, authors employ the extracted language-space noise embedding Eln and noisy audio embedding Easr(Xn) as the joint distribution, while using Eln and clean audio embedding Easr(Xc) as the marginal distribution, as the noise information only exists in noisy speech.</p>
+
+<figure>
+  <img src="img/asr/fig-mine-algorithm.png" alt="Algorithm 1: Audio noise distillation via mutual information neural estimation (MINE), a two-stage loop that first trains the statistics network to estimate mutual information, then updates the tuner and LLM adapter by maximizing MI between the language embedding and noisy audio embeddings.">
+  <figcaption>Algorithm 1: Audio noise distillation via MINE. From Hu et al., "Large Language Models are Efficient Learners of Noise-Robust Speech Recognition."</figcaption>
+</figure>
 
 <p>Algorithm describes how MINE is utilized for audio noise distillation, which includes two stages. First, the statistics network ψθ is trained to learn accurate MI estimation using both the positive and negative sample pairs introduced above. Second, a learnable tuner Tω is introduced to modulate the language embedding ELN to capture more real noise information, by maximizing the MI between it and the noisy audio embeddings. In addition, the LLM adapter is also updated in the second stage to learn H2T mapping for GER.</p>
 

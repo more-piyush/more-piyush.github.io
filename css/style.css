@@ -522,6 +522,34 @@ main { flex: 1; }
   margin-bottom: 0;
 }
 
+.blog-post .post-body figure {
+  margin: 1.75rem 0;
+  text-align: center;
+}
+
+.blog-post .post-body figure img,
+.blog-post .post-body img {
+  max-width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.75rem;
+  box-sizing: border-box;
+}
+
+.blog-post .post-body figure.equation img {
+  padding: 0.4rem 0.75rem;
+}
+
+.blog-post .post-body figcaption {
+  font-size: 0.8125rem;
+  color: var(--text-light);
+  margin-top: 0.6rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
 /* ───── Timeline ───── */
 .timeline {
   margin: 0.5rem 0 1rem;
