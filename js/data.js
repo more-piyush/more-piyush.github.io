@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "llms-for-asr-systems",
+      title: "LLMs for ASR Systems",
+      date: "2026-09-03",
+      excerpt: "Notes on three papers exploring how Large Language Models can be integrated into Automatic Speech Recognition systems — from in-context error correction to prompting LLMs with audio embeddings and noise-robust generative error correction.",
+      tags: ["AI/ML", "ASR", "Research"],
+      category: "Technical"
+    },
+    {
       slug: "notes-on-evolutionary-psychology",
       title: "Notes on Evolutionary Psychology",
       date: "2026-08-28",

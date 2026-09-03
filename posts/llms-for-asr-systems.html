@@ -1,0 +1,229 @@
+<p>Notes on three papers exploring the integration of Large Language Models into Automatic Speech Recognition systems.</p>
+
+<h2>1. Exploring the Integration of Large Language Models into Automatic Speech Recognition Systems: An Empirical Study</h2>
+
+<h3>Introduction</h3>
+
+<p>This paper explores the integration of Large Language Models into Automatic Speech Recognition systems to improve transcription accuracy, focusing on the potential of using LLMs in context learning capabilities to enhance the performance of ASR systems, which face challenges such as Ambient Noise, Speaker Accents and Complex Linguistic contexts.</p>
+
+<p>Initial experiments in this research didn't yield substantial results implying the complexity of leveraging LLMs in context learning for ASR Applications, despite utilizing varied settings and models, the corrected sentences by LLMs still resulted in higher Word Error Rates, demonstrating limitations.</p>
+
+<p>It has been observed that when the parameter scale surpasses certain thresholds, it improves LLMs performances at the same time exhibiting unique features such as in-context learning and instruction following.</p>
+
+<p>Focusing on the potential of employing LLMs in-context learning capability to enhance ASR performance, authors revolve their methodology around providing well defined instructions, supplying it with ASR transcriptions, analyzing if it can rectify mistakes.</p>
+
+<p>Authors have employed Aishell-1 and LibriSpeech datasets for experimentation and selected well known LLM benchmarks such as ChatGPT and GPT-4, focusing on ability to correct possible errors in speech recognition transcriptions.</p>
+
+<p>They undertook investigation using diverse settings, including variations in LLM models, modification of instructions, increasing number of attempts, and varying number of examples supplied to the model.</p>
+
+<p>This study contributes in:</p>
+
+<ol>
+  <li><strong><em>Exploration on LLMs for ASR Improvement:</em></strong> It explores the potential of LLMs, focusing on GPT 3.5 and GPT 4, to improve ASR performance by their in-context learning ability.</li>
+  <li><strong><em>Experiments through Various Settings:</em></strong> They conduct experiments using Aishell-1 and LibriSpeech datasets and analyze the effect of multiple variables (different LLM models, alterations in instructions, varying number of attempts, number of attempts provided to model).</li>
+  <li><strong><em>Evaluation of Performance:</em></strong> Leveraging the in-context learning ability of LLMs to correct potential errors in speech recognition transcriptions often lead to higher word error rate.</li>
+</ol>
+
+<h3>Related Work</h3>
+
+<p>Past works have explored various strategies including distillation methods and rescoring methods.</p>
+
+<ul>
+  <li><strong>Distillation approach:</strong> employed BERT model to produce soft labels for training ASR models; semantic knowledge that resides within embedding vectors.</li>
+  <li><strong>Rescoring methods:</strong> adapting BERT model to the task of n-best list rescoring; redefining N-best hypothesis reranking as prediction problem; attempting to train BERT-based rescoring model with MWER loss; amalgamating LLM rescoring with the Conformer-Transducer model.</li>
+</ul>
+
+<h3>Methodology</h3>
+
+<p>Authors have supplied the LLMs with the ASR transcription results and a suitable instruction to potentially correct errors.</p>
+
+<blockquote>y = LLM(I, (x1, y1), (x2, y2), ..., (xk, yk), x)</blockquote>
+
+<p>x: ASR transcription result; y: correct transcription; k: examples given to the LLM; I: Instruction provided to the LLM.</p>
+
+<p>Apart from thorough experimentation, varying GPT versions, design of instruction, number of examples k provided to GPT, authors further experimented with the multiple attempts at sentence-level corrections. That is, for each transcription sentence x, the LLM generates multiple corrected outputs, and the corrected result of the transcription sentence x is chosen as output with least WER.</p>
+
+<p>Unfortunately, even with the multiple attempts, the corrected output from the LLMs still results in higher WER.</p>
+
+<h3>Experimentation</h3>
+
+<p><strong>Setup:</strong> Authors selected two distinct dataset to evaluate the efficacy of utilizing advanced LLMs to improve ASR performance: the Aishell-1 dataset for Chinese language and LibriSpeech dataset for the English language.</p>
+
+<p>The Aishell-1 dataset has a total duration of 178 hours, with the precision of manual transcriptions exceeding 95%. The dataset is meticulously organized into training, development, and testing subsets.</p>
+
+<p>In contrast, the LibriSpeech dataset comprises approximately 1000 hours of English speech sampled at 16kHz. Similar to Aishell-1, LibriSpeech is also partitioned into subsets for training, development, and testing. Furthermore each subset is classified into two groups based on data quality: clean and other.</p>
+
+<p><strong>ASR Model:</strong> To ensure the applicability of experimental results, authors utilized hybrid connectionist temporal classification / attention architecture and employed pretrained weights provided by Wenet.</p>
+
+<p>The ASR model, trained on the Aishell-1 dataset, includes an encoder set up with a swish activation function, four attention heads, and 2048 linear units. The model employs an 8-kernel CNN module with layer normalization, and normalizes the input layer before activation. The encoder consists of 12 blocks, has an output size of 256, and uses gradient clipping (value=5) to prevent gradient explosions. The model leverages the Adam optimizer with a learning rate of 0.001 and a warm-up learning rate scheduler that escalates the learning rate for the initial 25,000 steps.</p>
+
+<p>The ASR model, trained on the Librispeech dataset, implements a bi transformer decoder and a conformer encoder. The encoder follows the same configuration as that of the Aishell-1 model. The decoder incorporates four attention heads, with a dropout rate of 0.1. The model adheres to the same optimization and learning rate strategies as the Aishell-1 model.</p>
+
+<p><strong>LLM:</strong> For the LLM models, considering that ChatGPT and GPT-4 are recognized benchmarks, Authors inspected three versions from ChatGPT and GPT-4 while there are other LLMs but they generally fall behind when it comes to overall competency for generic tasks.</p>
+
+<p>For instruction I, we tested four variations. Concerning the examples input to the LLMs, authors accessed 1-shot, 2-shot, and 3-shot scenarios. For the number of attempts, authors explored situations with 1-attempt, 3-attempts, and 5-attempts.</p>
+
+<p>As the LLM output may contain some irrelevant content with ASR transcription, for testing convenience, authors devised method suite to extract transcriptions from LLM output, where the model is told to enclose the corrected transcription in '[ ]', either by presenting the example to the model or directing the model in the instruction.</p>
+
+<h3>Results</h3>
+
+<p><strong>Results with Different LLM Models:</strong> While LLM models exhibit potential for a broad range of NLP applications, their application for error correction in ASR transcriptions still requires refinement. The WER for all LLM models in the Aishell-1 dataset is significantly higher than the WER in the scenario without an LLM. A similar pattern is evident in the LibriSpeech dataset, for both clean and other data.</p>
+
+<p><strong>Results with Varying Instructions:</strong> The Research findings suggested that supplying detailed instructions to the Language Model (LLM) improves its performance. However, even with extremely detailed instructions, the LLM model does not demonstrate adequate performance in the task of rectifying errors in speech recognition transcriptions.</p>
+
+<p><strong>Results with Varying Shots:</strong> The observations revealed that providing the model with more examples led to enhanced performance, aligning with findings observed in many NLP tasks involving LLM. However, for the 1-shot, 2-shot, and 3-shot scenarios we experimented with, none of them resulted in a satisfactory WER, indicating an increase in errors post-correction.</p>
+
+<p><strong>Results with Varying Attempts:</strong> Specifically, for each transcription sentence x, the LLM generates multiple corrected outputs, and the final corrected result of the transcription sentence is chosen as the x output with the least Word Error Rate (WER). In practical applications, choosing the output with the lowest WER is not feasible, as the correct transcription is unknown. This approach aids in elucidating the constraints of leveraging LLM's in-context learning capabilities for ASR transcription enhancement.</p>
+
+<p><strong>GPT4 Experimentations:</strong> Research findings indicated that, despite employing the state-of-the-art GPT4 model, the ASR transcriptions corrected with LLM still yielded a higher number of errors.</p>
+
+<h3>Conclusion</h3>
+
+<p>This paper has provided an exploratory study on the potential of Large Language Models (LLMs) to rectify errors in Automatic Speech Recognition (ASR) transcriptions. This research focused on employing renowned LLM benchmarks such as GPT-3.5 and GPT-4, which are known for their in-context learning capabilities. These experimental studies included a diverse range of settings, variations in the LLM models, changes in instructions, and a varied number of attempts and examples provided to the model. The results were less than satisfactory, sentences corrected by LLMs resulted in higher Word Error Rates (WERs), thus revealing the limitations of LLMs in speech applications.</p>
+
+<p>These findings do not imply that the application of LLMs in ASR technology should be dismissed. On the contrary, they suggest that further research and development are required to optimize the use of LLMs in this area. As LLMs continue to evolve, their capabilities might be harnessed more effectively in the future to overcome the challenges identified in this study.</p>
+
+<h2>2. Prompting Large Language Models with Speech Recognition Abilities</h2>
+
+<p>We are aware of the ability of the LLMs to solve generative tasks such as abstractive summarization and open-ended question answering. But this paper extends the capabilities of LLMs by attaching a small audio encoder allowing it to perform speech recognition.</p>
+
+<p>By directly prepending a sequence of audial embeddings to the text token embeddings, the LLM can be converted to an automatic speech recognition (ASR) system, and be used in the exact same manner as its textual counterpart.</p>
+
+<h3>Introduction</h3>
+
+<p>Interacting with LLMs purely through text is limiting, when there exist other structural modalities which encode information difficult to capture. For example, audio can encode a wide range of emotions in a person's speech and images can represent the geometry and location of objects that might be much harder to describe through text.</p>
+
+<p>The multi-modal PaLM-E combined a large pretrained visual transformer with the PaLM LLM and were able to achieve state-of-the-art performance on their robotics tasks. Further the authors propose listen, think and understand, an extension of LLaMA with an aligned audio encoder trained on an audio question answering corpus, enabling it to reason and understand, but then this limits speech understanding and recognition abilities.</p>
+
+<p>Due to the immense number of parameters in these large language model oriented systems, it can often be computationally impractical and expensive to adapt the whole system to new tasks.</p>
+
+<p>The authors suggest a highly parameter efficient approach, of utilizing a single trained projection layer which adapts the outputs of the visual encoder to be aligned with the language model.</p>
+
+<p>An alternative approach to this is inserting adapter layers or prefix embeddings, which are trained on a new task, while this might be parameter efficient approach but it increase inference costs, Low Rank Adaptation is a approach that's memory efficient during training and doesn't impact inference runtime.</p>
+
+<p>This paper investigates equipping a LLM with speech recognition abilities by conditioning the LLM on a variable length sequence of audio embeddings. A decoder-only LLM conditioned on the audio sequence is able to perform multilingual speech recognition, outperforming monolingual supervised trained baselines. This paper explores a range of factors to enable better recognition such as audio encoder model size, frame rate, low-rank model adaptation, text token masking, and type of LLM.</p>
+
+<h3>Methodology</h3>
+
+<p>This research approach centers around the use of a large language model to model sequences of embeddings irrespective of the modality of the embeddings, implying that the model can handle different types of embeddings could be textual, visual, auditory. Sequence of embedding implying chain of thought approach along with action generation.</p>
+
+<p>The authors utilize a pre-trained audio encoder to generate a variable-length sequence of audial embeddings. By conditioning on the audial embeddings, the LLMs can be allowed to perform speech recognition and other speech based tasks.</p>
+
+<p><strong>Audial Embeddings:</strong> Authors use conformer based audio encoder to produce sequence of embeddings that are utilized to condition LLM in the embeddings space. In order to extract useful embeddings it is initially trained on simple connectionist temporal classification loss.</p>
+
+<p>Since the sequence of output can be very long, one can reduce the length by stacking consecutive embeddings, resulting in larger but few embeddings. The stacked embeddings are then projected to the hidden dimension of the large language model to ensure they can be prepended to the text embeddings.</p>
+
+<p><strong>Large Language Models:</strong> Experiments utilize the smallest LLaMA-7B model. The causal self attention parameters of this system will be adapted using a parameter efficient Low-rank Adaptation keeping all other parameters frozen.</p>
+
+<p>This paper also discusses whether any LLM parameters need to be tuned at all to perform ASR and whether choice of LLM is important.</p>
+
+<p>The ASR-LLM problem can possibly be reinterpreted as a copying/translation task where the LLM needs to regurgitate the information in the audio sequence. If the audio encoder provides a sequence of embeddings aligned with the text embeddings the problem collapses to a repetition task which should not require the full capacity of an LLM, framing ASR-LLM problem as a copying/translation task with aligned embeddings, reduces the complexity of the task, allowing potential solutions and possibly not requiring full capacity of LLMs.</p>
+
+<h3>Experimental Evaluation</h3>
+
+<p><strong>Dataset:</strong> Multilingual LibriSpeech (MLS) is a 50k hour ASR corpus derived from read audiobooks, consisting of 8 languages: English, German, Dutch, French, Spanish, Italian, Portuguese, and Polish, the dataset is predominantly English with 44.5k hours.</p>
+
+<p>To account for the imbalance in the dataset we follow the strategy of oversampling from the lower resource languages.</p>
+
+<p><strong>Audio Encoder:</strong> The audio encoder operates on 80-d filterbank features with 10ms frame rate. It consists of convolutional feature extractor with a coarse effective stride of 8 followed by a linear layer to project the output to 512 dimensions and 18 layers of non-macron Conformer blocks, the blocks have a hidden dimension of 512, a feed forward net dimension of 2048, a kernel size of 11 and 8 attention heads.</p>
+
+<p>A final linear layer is used to pretrain the audio encoder using a CTC loss with a SentencePiece vocabulary size 1547. The final layer is discarded after pretraining.</p>
+
+<p>The effectiveness of this small audio encoder of 72 million parameters can be significantly improved by scaling the size up, reducing the level of striding and utilizing a range of unsupervised and semi-supervised learning approaches.</p>
+
+<p>The authors have focused their attention on showing that an LLM can be conditioned to perform speech recognition and investigate what factors improve its ability at performing.</p>
+
+<p><strong>Audial Embeddings:</strong> The output of the encoder is a sequence of 512-d vectors with a frame rate of 80ms. These embeddings prepended to the text embeddings, and fed into the LLM, which is tasked with predicting the text based token.</p>
+
+<p>To reduce sequence length and memory consumption, every consecutive frames are n, stacked to form 512n-dimensional frames which are projected to 4096-d embeddings to match the LLaMA-7B dimension, with a resulting frame rate of 80 nms.</p>
+
+<p><strong>Large Language Model Adaptation:</strong> We use a Low Rank Adaptation approach to adapt to key, query, value and output layers of the self-attention mechanism leaving feed-forward nets embedding and final linear output layer unchanged. Default LoRA hyperparameters are set to rank of R = 8, alpha = 16.</p>
+
+<p><strong>Training:</strong> The audio encoders were initially trained using Adam optimizer, the learning rate is linearly warmed up over 20,000 training steps up to a peak value of 10^-3 followed by an exponential decaying schedule. The checkpoint with the best validation loss was picked.</p>
+
+<p>The joint system with audio encoder and LLM was thereafter trained with a similar schedule of 5000 warm up steps to a learning rate of 5 x 10^-4 decaying down to 5 x 10^-6 over 250,000 steps.</p>
+
+<p><strong>Evaluation:</strong> All reported word error rates (WER) exclude the use of external language models. Decoding is done using greedy search with a maximum output token length of 200.</p>
+
+<h2>3. Large Language Models are Efficient Learners of Noise-Robust Speech Recognition</h2>
+
+<h3>Introduction</h3>
+
+<p>Latest works propose a generative error correction framework for ASR, along with a "HyPoradise" dataset that contains pairs of ASR N-best hypotheses and ground truth transcription. It has shown great performance in learning the mapping from hypotheses to transcription by parameter efficient LLM fine tuning, which significantly outperforms LM Rescoring methods. However these studies lack specificity on noisy ASR Scenarios.</p>
+
+<p>In this work, authors extend GER benchmark to noisy conditions, as well as propose a Robust HyPoradise dataset with 113,000 hypotheses-transcription pairs from various ASR corpus in common noisy scenarios.</p>
+
+<p>The idea is to map noisy speech features to a clean space before recognition, where speech enhancement denoising is a popular approach. Can we teach LLMs to denoise N-best hypotheses for GER, just like what robust ASR and speech enhancement do?</p>
+
+<p>Authors propose a solution is to incorporate audio noise information as a conditioner into LLM fine tuning to make it noise aware. However recent works have found out that directly introducing other modalities into LLM fine tuning could harm its stability and performance due to cross modality gap.</p>
+
+<p>The authors propose to extract a noise embedding in language space to represent noise condition of source speech, by measuring the diversity of the N-best hypotheses list from ASR Decoding, the worse noise condition (challenging noise condition or lower SNR) the higher uncertainty of ASR beam search decoding, thus results in more diverse N-best hypotheses.</p>
+
+<p>Extracted from the language space of hypotheses instead of audio space, our noise embedding can be well incorporated into LLM tuning to improve GER (Language-space denoising process). Further, in order to enhance its representation ability of audio noise, we design a knowledge distillation (KD) approach via mutual information estimation to distill the real noise information in audio embeddings to our extracted language embedding.</p>
+
+<p>Various latest LLMs, LLaMA-2, LLaMA and Falcon are utilized to verify the effectiveness of our approach, and the comprehensive experimental results demonstrate that our model improves the GER performance with up to 53.9% word error rate (WER) reduction on RobustHP test sets while with limited training data.</p>
+
+<h3>Related Work</h3>
+
+<p><strong>Large Language Models and Parameter-efficient Fine Tuning:</strong> Benefiting from giant model size and abundant training data, LLMs can understand the linguistic structures and semantic meanings behind text, which shows remarkable performance on a wide range of NLP tasks. To adapt LLMs to downstream tasks, recent works investigate parameter efficient LLM finetuning considering huge model size. Further to exploit the potential of LLMs on multimodal tasks, recent works investigate to incorporate other modalities into LLM tuning.</p>
+
+<p>Directly introducing other modalities into LLMs could harm the fine tuning stability and performance due to the heterogeneous cross-modality gap, hence this work proposes to extract a language embedding from the N-best list to represent audio noise, which works well in teaching LLMs to perform denoising.</p>
+
+<p><strong>LM Rescoring and ASR Generative Error Correction:</strong> LM rescoring is widely used in ASR decoding to improve the linguistic acceptability of recognition results, which achieves stable gains of ASR performance. An external LM is deployed to rescore the N-best hypotheses list from ASR beam search decoding to rerank out the 1-best candidature. Furthermore, to make full use of all candidatures, recent works use the entire N-best list for error correction which outperforms rescoring methods. To enable the learning of hypotheses-to-transcription mapping, they also propose a HyPoradise dataset with 316K hypotheses-transcription pairs. This work extends the GER benchmark to the most common noisy ASR scenarios with a new Robust HyPoradise dataset.</p>
+
+<p><strong>Noise-robust ASR:</strong> Neural ASR has achieved human-level performance but its noise-robustness in the real world remains a challenge. Noise-robust ASR methods make some progress by mapping noisy speech features to clean space before recognition. For instance, speech enhancement serves as a denoising block to improve speech quality for ASR, domain adversarial training aims to learn noise-invariant speech features. This work investigates to teach LLMs to denoise the N-best hypotheses in language space for GER.</p>
+
+<h3>Benchmark and Dataset</h3>
+
+<p><strong>Generative Error Correction Benchmark:</strong> We extend the original generative error correction benchmark to noise-robust ASR. Given an input noisy speech Xn, the pretrained ASR Model first transcribes it into N-best hypotheses Yn = {Y1, Y2, …. , Yn} by beam search decoding. The goal of GER is to learn a hypotheses-to-transcription (H2T) Mapping MH2T that predicts the transcription based on N-best Y hypotheses list Yn. Given the ground truth transcription Y*, we can fine tune the LLM to learn MH2T in an auto-regressive manner, where the cross entropy loss is formulated.</p>
+
+<p><strong>Robust Hyporadise Dataset:</strong> Authors develop a Robust HyPoradise dataset by collecting hypotheses-transcription (HT) pairs from common noisy ASR corpus, including CHiME-4, VoiceBank DEMAND, LibriSpeech-FreeSound.</p>
+
+<p>Authors employ Whisper Large-V2, the state of art ASR foundation model to transcribe the noisy speech into N-best hypotheses, resulting in a collection of 113,000 HT pairs in total from various noise domains.</p>
+
+<h3>Method</h3>
+
+<p><strong>Overall Framework:</strong> First, noisy speech Xn, the pretrained ASR Model first transcribes it into N-best hypotheses Yn = {Y1, Y2, …. , Yn}, following that authors propose to extract a language space noise embedding Eln from the N-best list Yn to represent the noise conditions of source speech Xn. Noise embeddings measure the diversity of N-best hypotheses on both utterance and token levels, which perceives the noise information in input speech.</p>
+
+<p>Furthermore, to enhance its noise representation ability, authors have designed KD approach to distill the real noise information in source speech Xn to the extracted language space noise embedding Eln. Specifically we employ the audio embedding from ASR encoder.</p>
+
+<p>Further, we add an instruction onto the N-best hypotheses and sent them into LLM to predict the true transcription (i.e., GER), with the language embedding incorporated for denoising.</p>
+
+<blockquote>Y = MH2T ( Yn - Eln )</blockquote>
+
+<p>Where MH2T: H2T mapping by efficient LLM fine tuning (Adapter Tuning).</p>
+
+<p>Authors also borrow the idea of input level prompting to incorporate our language noise embedding into LLM tuning.</p>
+
+<p><strong>Language Space Noise Embedding:</strong> Authors propose an alternative to extract language space noise embedding from N-best hypotheses to represent the noise conditions of source speech.</p>
+
+<p>We extract the noise embedding on both utterance and token levels to capture rich diversity information:</p>
+
+<ol>
+  <li><strong>Utterance Level:</strong> examine the diversity inside N-best list in terms of the entire utterance's semantic meaning, which indicates the effect of audio noise on the global semantics of hypotheses.</li>
+  <li><strong>Token Level:</strong> examine the distribution of N-best hypothesis in terms of all the tokens inside, which is similar to edit distance and thus directly corresponds to the WER metric.</li>
+</ol>
+
+<p>Finally both Utterance-level and Token-level embeddings are combined to form the resultant noise embedding. Specifically, authors employ sentence-BERT to obtain the embeddings from raw text, which contains rich language-space semantic information.</p>
+
+<p><strong>Utterance-level Noise Embedding:</strong> Given N-best hypotheses Yn = {Y1, Y2, ….. , Yn}, we first obtain their sentence embeddings by SBERT encoder and then calculate their diversity, where Dsbert denotes the embedding size of SBERT extractor. It basically concatenates all the sentence embedding difference, resulting in an utterance-level noise embeddings, Yi ranks lower than Yj in the N-best hypotheses list, which thus presents lower confidence and worse transcription quality, i.e. more language noise.</p>
+
+<p><strong>Token-level Noise Embedding:</strong> Authors propose to extract token-level noise embedding that directly corresponds to the WER metric of ASR task. Similar to the calculation of the edit distance, we first forced-align the N-best hypotheses to the same length with zero padding. The aligned N-hypotheses clearly illustrates the token difference between different candidatures, where each utterances contains T tokens that comes from ASR vocabulary plus zero padding.</p>
+
+<p>Authors have designed an edit embedding to capture the token-level difference between the two hypotheses, which directly corresponds to their gap in final WER performance. We calculate the token-level noise embedding by summing up the edit embedding between different pairs of hypotheses in the N-best list. We employ SBERT again to extract the token embedding, as it can produce informative embeddings for both utterances and tokens.</p>
+
+<p><strong>Audio Noise Distillation:</strong> After extracting the language-space noise embedding from N-best hypotheses, authors further propose an audio noise distillation approach via mutual information estimation to enhance its noise representation ability.</p>
+
+<p>Given two random variables X and Z, their MI can be calculated by KL divergence Dkl ( P || Q ). However, it is intractable to directly calculate MI, so we leverage an estimation method called Mutual Information Neural Estimation (MINE). MINE employs a statistics network parameterized to estimate neural information measure.</p>
+
+<p>In practice, authors employ the extracted language-space noise embedding Eln and noisy audio embedding Easr(Xn) as the joint distribution, while using Eln and clean audio embedding Easr(Xc) as the marginal distribution, as the noise information only exists in noisy speech.</p>
+
+<p>Algorithm describes how MINE is utilized for audio noise distillation, which includes two stages. First, the statistics network ψθ is trained to learn accurate MI estimation using both the positive and negative sample pairs introduced above. Second, a learnable tuner Tω is introduced to modulate the language embedding ELN to capture more real noise information, by maximizing the MI between it and the noisy audio embeddings. In addition, the LLM adapter is also updated in the second stage to learn H2T mapping for GER.</p>
+
+<h2>References</h2>
+
+<ol>
+  <li>Zeping Min, Jinbo Wang. "Exploring the Integration of Large Language Models into Automatic Speech Recognition Systems: An Empirical Study." International Conference on Neural Information Processing.</li>
+  <li>Yassir Fathullah, Chunyang Wu, Egor Lakomkin, Junteng Jia, Yuan Shangguan, Ke Li, Jinxi Guo, Wenhan Xiong, Jay Mahadeokar, Ozlem Kalinli, Christian Fuegen, Mike Seltzer. "Prompting Large Language Models with Speech Recognition Abilities."</li>
+  <li>Yuchen Hu, Chen Chen, Chao-Han Huck Yang, Ruizhe Li, Chao Zhang, Pin-Yu Chen, Eng Siong Chng. "Large Language Models are Efficient Learners of Noise-Robust Speech Recognition." International Conference on Learning Representations.</li>
+</ol>
