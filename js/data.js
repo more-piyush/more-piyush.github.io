@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "zero-shot-task-transfer",
+      title: "Zero-Shot Task Transfer",
+      date: "2026-09-03",
+      excerpt: "Notes on TTNet — a meta-learning algorithm that regresses model parameters for zero-shot tasks with no ground truth, by learning from the parameters of known tasks and the correlation between them.",
+      tags: ["AI/ML", "Meta-Learning", "Research"],
+      category: "Technical"
+    },
+    {
       slug: "deep-omni-supervised-learning-rib-fracture-detection",
       title: "Deep Omni-Supervised Learning for Rib Fracture Detection",
       date: "2026-09-03",

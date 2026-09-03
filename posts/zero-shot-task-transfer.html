@@ -1,0 +1,120 @@
+<p>Notes on Zero-Shot Task Transfer — a meta-learning algorithm that regresses model parameters for tasks with no ground truth.</p>
+
+<h2>Abstract</h2>
+
+<p>A novel meta learning algorithm that regresses model parameters for zero-shot tasks (no ground truth). In order to adapt to novel zero-shot tasks, the meta learner learns from the model parameters of known tasks (w/ ground truth) and correlation between them.</p>
+
+<p>Model evaluation of the model is carried out over four tasks as zero shot: surface normal, room layout, depth and camera pose estimation, chosen based on acquisition complexity and complexity associated with the learning process. The authors have conducted extensive research to study the various choices of the methodology, and have shown how the proposed method can be utilized in transfer learning.</p>
+
+<h2>Introduction</h2>
+
+<p>The major driving force behind computer vision is availability of large amounts of curated labeled data. Effective models that work in practice require a very large labeled data, which isn't practical as they are expert demanding and labor intensive. Due to its expensive nature, practitioners avoid such tasks or carry out in lesser amounts of data which leads to poor performing models.</p>
+
+<p>Authors have built an alternative approach that can obtain model parameters for tasks without any labeled data.</p>
+
+<p>Cognitive studies show results where a subject could adapt to new scenarios by correlating with experience, without any explicit supervision. Understanding this the authors propose a meta-learner that learns from the Encoder-Decoder parameters of known tasks (w/ ground truth) and their correlation to the novel task.</p>
+
+<p>Formally, we have the knowledge of m known tasks { T1, T2, …. Tm }, a meta-learner F, utilized to derive the parameters for the T(m+1) novel task. The Encoder-Decoder Subscripts are forementioned as Te(i) and Td(i).</p>
+
+<p>However, with no knowledge of the correlation between the tasks, it isn't probable for the meta-learner to learn, as it could map on any point on the meta-manifold. Hence the correlation between the known tasks and novel tasks is considered as an additional input.</p>
+
+<p>There are different notions of how correlation between the task could be obtained. In this work, the authors have utilized the approach of wisdom-of-crowd. Harvesting task correlation knowledge from the crowd is fast, cheap, and brings domain knowledge. High-fidelity aggregation of crowd votes is used to integrate the task correlation between known and zero-shot tasks in the model.</p>
+
+<p>Authors have leveraged task correlation for the objectives listed:</p>
+
+<ol>
+  <li>Extrapolate parameters to a zero-shot task, for which no labeled data is available</li>
+  <li>To adapt to a new task without requiring any target labeled data</li>
+  <li>Used to learn multiple tasks simultaneously</li>
+</ol>
+
+<p>Author contributions can be summarized as</p>
+
+<ol>
+  <li>A novel methodology to infer zero-shot task parameters used to solve tasks with no labeled data</li>
+  <li>Methodology can scale to solving multiple zero-shot tasks simultaneously, provides near state-of-the-art models with a smaller set of known tasks</li>
+  <li>How the method can be used in transfer learning setting</li>
+</ol>
+
+<h2>Related Works</h2>
+
+<p><strong>Transfer Learning:</strong> Reusing supervision, where an already learned model of a task is fine-tuned to a target task.</p>
+
+<p><strong>Multi-task Learning:</strong> Multi-task learning learns multiple tasks simultaneously with a view of task generalization. Some methods assume a prior and then iterate to learn a joint space of tasks, others don't use a prior but learn a joint space of tasks during the process of learning. Distributed Multi-task learning methods focus on the same objectives when the tasks are distributed over the network. However, there is an explicit need of having labeled data for all the tasks. It can't solve zero-shot tasks w/o labeled data.</p>
+
+<p><strong>Domain Adaptation:</strong> Primary focus of domain adaptation is to transfer domain knowledge from a data-rich domain to a domain with limited data. Learning domain-invariant features requires domain alignment. Such matching is achieved through use of an auto-encoder, by clustering, by using GANs. The authors have proposed a generalizable framework that can learn models for a novel task from the knowledge of available tasks and their correlation with novel tasks.</p>
+
+<p><strong>Meta-Learning:</strong> Earlier efforts on meta-learning assume that task parameters lie on a low dimensional subspace, share a common probabilistic prior, however, these efforts are targeted only to achieve knowledge transfer among known tasks and tasks with limited data. Recent meta-learning approaches consider all task parameters as input signals to learn a meta manifold that helps few shot learning, transfer learning and domain adaptation. However, the meta manifold learned by these methods isn't explicit enough to extrapolate parameters of zero-shot tasks. The authors method relaxes the need for ground truth for zero-shot tasks, by leveraging task correlation among known tasks and novel zero-shot tasks.</p>
+
+<p><strong>Learning with Weak Supervision:</strong> In this method, task supervision is a form of weak supervision. Weak supervision is harvested from knowledge bases, domain heuristics, ontologies, rules of thumb, decisions of weak classifiers or obtained using crowdsourcing.</p>
+
+<h2>Methodology</h2>
+
+<p>The primary objective is to learn a meta-learning algorithm that regresses neatly optimal parameters of a novel task for which no ground truth is available. The meta learner seeks to learn from the model parameters of known tasks to adapt to novel zero-shot tasks.</p>
+
+<p>Formally, consider K tasks, i.e. T = { T1, T2, ….. , Tk } each of whose model parameters lie on a meta manifold M of task model parameters. We have ground truth available for first m tasks, i.e. { T1, … , Tm } with their corresponding model parameters Ot(i). We have no knowledge of the ground truth for the zero-shot tasks {T(m+1) , …. , Tk }.</p>
+
+<p>The aim here, is to build a meta learning function F(.) that can regress the unknown zero-shot model parameters { Ot(j) : j = (m+1, …. , k) } from the knowledge of known model parameters:</p>
+
+<figure class="equation">
+  <img src="img/zst/eq-regression.png" alt="Equation: F applied to the parameters theta of tasks tau_1 through tau_m equals theta of tau_j, for j from m+1 to K.">
+</figure>
+
+<p>The authors introduce a task correlation (overcoming limitation of the function F(.) mapping to any point on the meta manifold.) matrix, where each element captures a task correlation between two tasks Ti , Tj lies in T:</p>
+
+<figure class="equation">
+  <img src="img/zst/eq-regression-gamma.png" alt="Equation: F applied to the parameters theta of tasks tau_1 through tau_m together with the task correlation matrix Gamma equals theta of tau_j, for j from m+1 to K.">
+</figure>
+
+<p>The function F(.) is itself parameterized by W, an objective function to compute an optimum value for W:</p>
+
+<figure class="equation">
+  <img src="img/zst/eq-objective-w.png" alt="Objective: minimize over W the sum for i from 1 to m of the squared norm of F applied to the theta parameters and their correlations gamma with W, minus the optimal theta of tau_i.">
+</figure>
+
+<p>It is assumed that all the tasks are learned as an autoencoder and the task parameters can be described in terms of an encoder and a decoder. The authors observed that considering only encoder parameters, is sufficient to regress zero-shot encoders and decoders for tasks {T(m+1) , …. , Tk }. Based on the above observation the objective function can be written as</p>
+
+<figure class="equation">
+  <img src="img/zst/eq-objective-encoder.png" alt="Objective: minimize over W the sum for i from 1 to m of the squared norm of F applied to the encoder parameters theta_E and their correlations gamma with W, minus the pair of optimal encoder and decoder parameters theta star E and theta star D of tau_i.">
+</figure>
+
+<p>where <img src="img/zst/in-where-params.png" alt="theta star of encoder tau_i and theta star of decoder tau_i" style="height:1.5em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;"> are the learned model parameters of a known task Ti lies in T. The model parameters obtained not only should minimize the above loss function on the meta-manifold M, but also should have a low loss on the original data manifold (ground truth of known tasks).</p>
+
+<p><img src="img/zst/in-decoder-op.png" alt="data decoder operator D parameterized by theta of decoder tau" style="height:1.6em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;"> denote the data decoder parameterized by <img src="img/zst/in-theta-d.png" alt="theta of decoder tau_i" style="height:1.4em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;">. <img src="img/zst/in-encoder-op.png" alt="data encoder operator E parameterized by theta of encoder tau" style="height:1.7em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;"> denote the data encoder parameterized by <img src="img/zst/in-theta-e.png" alt="theta of encoder tau_i" style="height:1.4em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;">.</p>
+
+<p>A data model consistency loss is added to the objective function to ensure that regressed encoder and decoder parameters perform well on both meta manifold as well as the original data network:</p>
+
+<figure class="equation">
+  <img src="img/zst/eq-consistency-loss.png" alt="Objective with data-model consistency loss: minimize over W the sum of the squared norm of F on the encoder parameters minus the optimal encoder and decoder parameters, plus lambda times the sum over the data x and labels y of the loss between the data decoder of the data encoder of x and the label y.">
+</figure>
+
+<p>The objective function F(.) is designed as a network of m branches, each with parameters (weights) { W1, W2, … , Wm } reply, aren't coupled with the initial layers but later combined in a W(common) block that regresses encoder and decoder parameters.</p>
+
+<p>Dividing the function F(.) into parts, W(initial) and W(common) is driven by intuition, where the initial layers transform the individual task model parameter into a suitable representation space and later layers parameterized by W(common) capture relationship between the tasks and contribute towards regressing the encoder and decoder parameter.</p>
+
+<p><strong>Input:</strong> To train the meta network F(.), we need a batch of model parameters for each known task T1, … Tm, it is similar to how a batch of data samples is used to train a data network. In order to obtain one model parameter set, for a known task Ti, we train the base learner (autoencoder) defined as <img src="img/zst/in-base-learner.png" alt="data decoder D of the data encoder E of x parameterized by theta encoder tau_i, then theta decoder tau_i" style="height:1.5em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;">, achieved by optimizing the base learned on a subset of data x and corresponding labels with an appropriate loss function for the known task.</p>
+
+<p>Similarly p subsets of labeled data are obtained using a sampling with replacement strategy from the dataset <img src="img/zst/in-dataset.png" alt="the dataset X of tau_i and labels y of tau_i" style="height:1.5em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;"> corresponding to Tj. Following this a set of p optimal model parameters i.e. <img src="img/zst/in-params-tj.png" alt="Theta star of tau_j equals the set of Theta star tau_j superscript 1 through p" style="height:1.5em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;"> for task Tj is obtained. A similar process is followed to obtain p optimal model parameters for each known tasks <img src="img/zst/in-params-known.png" alt="the set of Theta star tau_1 through Theta star tau_m" style="height:1.5em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;">. These model parameters (a total of p * m across all the known tasks) serve as the inputs.</p>
+
+<p><strong>Training:</strong> The meta network is trained on the objective function in two modes: a self mode and transfer mode for each task. Given a known task Ti, training in self mode implies updating of weights Wi and W(common) alone. While, training in the transfer mode implies updation of weights <img src="img/zst/in-transfer-weights.png" alt="W not-i, meaning all W_j with j not equal to i, for j from 1 to m" style="height:1.5em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;"> and W(common) of F(.). Self mode is similar to training a standard autoencoder, where F(.) learns to project the model parameter <img src="img/zst/in-theta-tj.png" alt="theta of tau_j" style="height:1.35em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;"> near the given model parameter (learned from ground truth) <img src="img/zst/in-theta-star-tj.png" alt="theta star of tau_j" style="height:1.45em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;">.</p>
+
+<p>In transfer mode, a set of model parameters of tasks (other than τj) attempt to map the position of learned θτj, near the given model parameter θτj on the meta manifold. The transfer mode is essential to be able to regress the model parameters of a task, given the model parameters of other tasks. At the inference time, the objective function F(.) operates in transfer mode.</p>
+
+<p><strong>Regressing Zero-Shot Task Parameters:</strong> The optimal parameters W* are learnt for F(.) using the algorithm, which are used to regress the zero-shot task parameters i.e.</p>
+
+<figure class="equation">
+  <img src="img/zst/eq-inference-regression.png" alt="Equation: F with optimal weights W star applied to the encoder parameters theta_E and their correlations gamma for tasks tau_1 through tau_m at column j." >
+</figure>
+
+<p>for all j = (m+1), … , T.</p>
+
+<figure>
+  <img src="img/zst/fig-algorithm.png" alt="Algorithm 1: Training our meta network, TTNet. Input: number of epochs, number of iterations k for self/transfer mode, optimal model parameters of known tasks, and the task correlation matrix Gamma. For each epoch and each task, run k steps of self mode updating weights W_i and W_common, then k steps of transfer mode updating weights W_not-i and W_common, each optimizing the F objective with the data-model consistency loss.">
+  <figcaption>Algorithm 1: Training our meta network, TTNet. Figure from Pal and Balasubramanian, "Zero-Shot Task Transfer."</figcaption>
+</figure>
+
+<h2>References</h2>
+
+<ol>
+  <li>Arghya Pal, Vineet Balasubramanian. "Zero-Shot Task Transfer."</li>
+</ol>
