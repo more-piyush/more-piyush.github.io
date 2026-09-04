@@ -1,0 +1,232 @@
+<p>Notes from ECE-GY 6303 Probability and Stochastic Processes — set theory, the axioms of probability, random variables, distributions, and expectation.</p>
+
+<h2>Set Operations</h2>
+
+<ol>
+  <li><strong>Transitivity:</strong> C &sub; B and B &sub; A &rArr; C &sub; A</li>
+  <li><strong>Equality:</strong> A = B iff A &sub; B and B &sub; A</li>
+  <li><strong>Union:</strong> sum or union of two sets A and B &rarr; set whose elmts are all elements of A or of B or of both. A &cup; B or A + B. Union operation is commutative or associative: A + B = B + A; (A + B) + C = A + (B + C). B &sub; A &rArr; A + B = A. A + A = A; A + {&phi;} = A; S + A = S.</li>
+  <li><strong>Intersection:</strong> product or intersection &rArr; all elements that are common to the sets A and B. A &cap; B or AB. Commutative, associative and distributive: AB = BA; (AB)C = A(BC); A(B+C) = AB + AC. A &sub; B &rArr; AB = A. AA &rArr; A; A{&phi;} = {&phi;}; AS = A.</li>
+  <li><strong>Mutually Exclusive:</strong> Two sets A and B, are called Mutually Exclusive or Disjoint if they have no common elements, if AB = {&phi;}.</li>
+  <li><strong>Partition:</strong> Partition U of set s &rarr; collection of mutually exclusive subsets A<sub>i</sub> of s whose union equals s. A<sub>1</sub> + A<sub>2</sub> + A<sub>3</sub> + &hellip; + A<sub>n</sub> = S, A<sub>i</sub>A<sub>j</sub> = {&phi;}, i &ne; j.</li>
+  <li><strong>Complements:</strong> complement &Aring; of set A &rarr; consisting of all elements s that are not A. A + &Aring; = S; A&Aring; = {&phi;}; &Aring;&Aring; = A; S&#773; = {&phi;}; {&phi;}&#773; = S. If B &sub; A then B&#773; &sup; &Aring;. If A = B then &Aring; = B&#773;.</li>
+</ol>
+
+<p><strong>Theorem &mdash; De Morgan's Law:</strong></p>
+
+<figure>
+  <img src="img/probability/nt-demorgan.png" alt="Handwritten note: De Morgan's Law, complement of A+B equals A-bar times B-bar, and complement of AB equals A-bar plus B-bar.">
+  <figcaption>From the notes &mdash; De Morgan's Law.</figcaption>
+</figure>
+
+<p><strong>Corollary:</strong> If in a set identity, we replace all unions by intersection, all intersection by unions, the sets s and {&phi;} by the sets {S} and {&phi;}, the identity is preserved.</p>
+
+<h2>Axioms of Probability</h2>
+
+<figure>
+  <img src="img/probability/nt-axioms.png" alt="Handwritten note: Axioms of probability — assign to each event A of a space S a number P(A). I. P(A) >= 0. II. P(S) = 1. III. If AB = empty then P(A+B) = P(A) + P(B). IIIa. If A1, A2, ... are mutually exclusive then P(A1 + A2 + ...) = P(A1) + P(A2) + ...">
+  <figcaption>From the notes &mdash; the axioms.</figcaption>
+</figure>
+
+<p>Assign to each event A of a space s a number P(A) which we call probability of an event A, satisfy the following conditions: I. P(A) &ge; 0. II. P(S) = 1. III. If AB = {&phi;}, then P(A + B) = P(A) + P(B). III<sub>a</sub>. If A<sub>1</sub>, A<sub>2</sub>, &hellip; are mutually exclusive, then P(A<sub>1</sub> + A<sub>2</sub> + &hellip;) = P(A<sub>1</sub>) + P(A<sub>2</sub>) + &hellip;</p>
+
+<p><strong>Properties of Probability:</strong></p>
+
+<ol>
+  <li>P(&phi;) = 0</li>
+  <li>P(A) &le; 1</li>
+  <li>for any A and B, P(A + B) = P(A) + P(B) &minus; P(AB) &le; P(A) + P(B)</li>
+  <li>If B &sub; A, P(A) = P(B) + P(A B&#773;) &ge; P(B)</li>
+</ol>
+
+<h2>Probability Space</h2>
+
+<p>Space s (or &Omega;) &rarr; certain event. Elements &rarr; outcomes. Subsets &rarr; events. Empty set &rarr; impossible event. event {&epsilon;<sub>i</sub>} consisting of single element &epsilon;<sub>i</sub> in an elementary event.</p>
+
+<p><strong>Determination of Probabilities &mdash; Countable Spaces:</strong> Space s &rarr; N outcomes and N is finite no. Probability of all events P(&epsilon;<sub>i</sub>) = P<sub>i</sub>. of elementary event P{&epsilon;<sub>i</sub>} = P<sub>i</sub>. P<sub>i</sub> &ge; 0; P<sub>1</sub> + P<sub>2</sub> + P<sub>3</sub> + &hellip; + P<sub>N</sub> = 1. If s &rarr; N outcomes &amp; probability P<sub>i</sub> of elementary events are equal, P<sub>i</sub> = 1/N. Probability of an event A consisting of r elements: P(A) = r/N = (Number of elementary events in A) / (Total Number of elementary events in S).</p>
+
+<p><strong>Non-Countable Space:</strong> s &rarr; set of all real numbers. Suppose &alpha;(x) is a function (PDF), &int;<sub>&minus;&infin;</sub><sup>&infin;</sup> &alpha;(x) dx = 1, &alpha;(x) &ge; 0. Probability of Event {x &le; x<sub>i</sub>} by integral: P{x &le; x<sub>i</sub>} = &int;<sub>&minus;&infin;</sub><sup>x<sub>i</sub></sup> &alpha;(x) dx. P{x<sub>1</sub> &lt; x &le; x<sub>2</sub>} = &int;<sub>x<sub>1</sub></sub><sup>x<sub>2</sub></sup> &alpha;(x) dx.</p>
+
+<h2>Conditional Probability</h2>
+
+<figure>
+  <img src="img/probability/nt-conditional-prob.png" alt="Handwritten note: Conditional Probability of an event A assuming M, P(A|M) is ratio P(AM)/P(M), P(M) not equal 0.">
+  <figcaption>From the notes &mdash; conditional probability.</figcaption>
+</figure>
+
+<p>Conditional Probability of an event A assuming M, P(A|M) is ratio P(AM)/P(M), P(M) &ne; 0.</p>
+
+<p><strong>Properties:</strong> 1. M &sub; A &rArr; P(A|M) = 1. 2. A &sub; M &rArr; P(A|M) = P(A)/P(M) &ge; P(A).</p>
+
+<p><strong>Remarks:</strong> 1. P(A|M) &ge; 0. 2. P(S|M) = 1. 3. AB = {&phi;} &rArr; P((A+B)|M) = P(A|M) + P(B|M).</p>
+
+<h2>Total Probability and Bayes' Theorem</h2>
+
+<figure>
+  <img src="img/probability/nt-total-prob-bayes.png" alt="Handwritten note: partition diagram of A1..An with event B, and Bayes Theorem P(Ai|B) = P(B|Ai)P(Ai) divided by the sum over j of P(B|Aj)P(Aj).">
+  <figcaption>From the notes &mdash; the partition, total probability and Bayes' theorem.</figcaption>
+</figure>
+
+<p><strong>Total Probability:</strong> If U = [A<sub>1</sub>, &hellip;, A<sub>n</sub>] &rarr; partition of s and B is an arbitary event:</p>
+
+<blockquote>P(B) = P(B|A<sub>1</sub>) P(A<sub>1</sub>) + P(B|A<sub>2</sub>) P(A<sub>2</sub>) + &hellip; + P(B|A<sub>n</sub>) P(A<sub>n</sub>)</blockquote>
+
+<p><strong>Bayes' Theorem:</strong> If U = [A<sub>1</sub>, &hellip;, A<sub>n</sub>] &rarr; partition of s and B is an arbitary event:</p>
+
+<blockquote>P(A<sub>i</sub>|B) = P(B|A<sub>i</sub>) P(A<sub>i</sub>) / [ P(B|A<sub>1</sub>) P(A<sub>1</sub>) + P(B|A<sub>2</sub>) P(A<sub>2</sub>) + &hellip; + P(B|A<sub>n</sub>) P(A<sub>n</sub>) ]</blockquote>
+
+<h2>Independence</h2>
+
+<figure>
+  <img src="img/probability/nt-independence.png" alt="Handwritten note: A and B are called independent if P(AB) = P(A)P(B), with properties on independence of complements.">
+  <figcaption>From the notes &mdash; independence and its properties.</figcaption>
+</figure>
+
+<p>A and B are called Independent if P(AB) = P(A) P(B).</p>
+
+<p><strong>Properties:</strong> 1. A, B independent &rArr; &Aring;, B independent. 2. A, B independent &rArr; &Aring;, B&#773; independent. 3. A, B independent &rArr; P(A|B) &ne; P(A). 4. If A is x% of the total, and the portion of A in B is x% of B, then A and B are independent.</p>
+
+<p><strong>Independence of Three Events:</strong> A<sub>1</sub>, A<sub>2</sub>, A<sub>3</sub> are called Independent, if they are independent in pairs: P(A<sub>i</sub>A<sub>j</sub>) = P(A<sub>i</sub>) P(A<sub>j</sub>) and P(A<sub>1</sub>A<sub>2</sub>A<sub>3</sub>) = P(A<sub>1</sub>) P(A<sub>2</sub>) P(A<sub>3</sub>). Three events might be independent in pairs but not independent.</p>
+
+<h2>Combined Experiments, Bernoulli Trials, Permutations and Combinations</h2>
+
+<figure>
+  <img src="img/probability/nt-permutations-comb.png" alt="Handwritten note: Bernoulli Trial and permutations — number of permutations of n distinct objects is n!, taken r at a time is n!/(n-r)!, and combinations nCr = n!/(r!(n-r)!).">
+  <figcaption>From the notes &mdash; permutations and combinations.</figcaption>
+</figure>
+
+<p><strong>Bernoulli Trial:</strong> Sample space that contains as elements all possible orders or arrangements of group of objects. The different arrangement are called Permutations.</p>
+
+<p><strong>Theorem:</strong> Number of permutation of n distinct objects is n!, where n! = (n)(n&minus;1)(n&minus;2)&hellip;(3)(2)(1).</p>
+
+<p><strong>Theorem:</strong> Number of permutation of n distinct objects taken r at a time is n! / (n&minus;r)!.</p>
+
+<p>Number of ways of selecting r objects from n without regard to order. These selection are called Combinations: <sup>n</sup>C<sub>r</sub> = n! / (r!(n&minus;r)!).</p>
+
+<p><strong>Success and Failure of an event A in n Independent Trials:</strong> Experiments, an event A with P(A) = p, P(&Aring;) = q, p + q = 1. P<sub>n</sub>(k) = P{A occurs k times in n trials} = <sup>n</sup>C<sub>k</sub> p<sup>k</sup> q<sup>n&minus;k</sup>.</p>
+
+<h2>Concept of Random Variable</h2>
+
+<figure>
+  <img src="img/probability/nt-rv-dist-density.png" alt="Handwritten note: A random variable is function of outcome and satisfies: for every x, {x <= x} is an event; P{x = infinity} = 0, P{x = -infinity} = 0.">
+  <figcaption>From the notes &mdash; the random variable.</figcaption>
+</figure>
+
+<p>In a fair die experiment, if we assign six outcomes f<sub>i</sub> the number x(f<sub>i</sub>) = 10i i.e x(f<sub>1</sub>) = 10, &hellip; x(f<sub>6</sub>) = 60, then x(&epsilon;) is a random variable.</p>
+
+<p>A random variable is function of outcome &epsilon; and satisfies: I. for every x, {x &le; x} is an event. II. P{x = &infin;} = 0, P{x = &minus;&infin;} = 0.</p>
+
+<h2>Distribution and Density Function</h2>
+
+<p>F<sub>x</sub>(x) = P{x &le; x} is called cumulative distribution function of x. f<sub>x</sub>(x) = dF<sub>x</sub>(x)/dx is called density function of x.</p>
+
+<figure>
+  <img src="img/probability/nt-dist-staircase.png" alt="Handwritten note: staircase cumulative distribution function graph and impulse density function graph for a discrete random variable.">
+  <figcaption>From the notes &mdash; distribution and density of a discrete random variable.</figcaption>
+</figure>
+
+<p><strong>Properties of Distribution Function:</strong></p>
+
+<ol>
+  <li>F(&infin;) = 1; F(&minus;&infin;) = 0</li>
+  <li>F(x) is non-decreasing function of x i.e F(x<sub>1</sub>) &le; F(x<sub>2</sub>) if x<sub>1</sub> &lt; x<sub>2</sub></li>
+  <li>P{x &gt; x} = 1 &minus; F(x)</li>
+  <li>F(x) is continuous from right i.e F(x) = lim<sub>&epsilon;&rarr;0</sub> F(x+&epsilon;)</li>
+  <li>P{x<sub>1</sub> &lt; x &le; x<sub>2</sub>} = F(x<sub>2</sub>) &minus; F(x<sub>1</sub>)</li>
+  <li>P{x = x} = F(x) &minus; F(x<sup>&minus;</sup>) = lim<sub>&epsilon;&rarr;0</sub> F(x&minus;&epsilon;)</li>
+  <li>P{x<sub>1</sub> &le; x &le; x<sub>2</sub>} = F(x<sub>2</sub>) &minus; F(x<sub>1</sub><sup>&minus;</sup>)</li>
+</ol>
+
+<p>Random variable x is called Continuous Type if F(x) is continuous. Random variable x is called Discrete Type if F(x) is staircase.</p>
+
+<p><strong>Properties of Density Function:</strong> 1. f(x) &ge; 0. 2. F(x) = &int;<sub>&minus;&infin;</sub><sup>x</sup> f(y) dy. 3. &int;<sub>&minus;&infin;</sub><sup>&infin;</sup> f(x) dx = 1. 4. P{x<sub>1</sub> &lt; x &lt; x<sub>2</sub>} = &int;<sub>x<sub>1</sub></sub><sup>x<sub>2</sub></sup> f(x) dx.</p>
+
+<h2>Special Random Variables</h2>
+
+<h3>Normal (Gaussian) Distribution</h3>
+
+<p>A random variable x &rarr; normal or gaussian if its density function is given by:</p>
+
+<blockquote>f<sub>x</sub>(x) = (1 / &radic;(2&pi;&sigma;<sup>2</sup>)) e<sup>&minus;(x&minus;&mu;)<sup>2</sup>/2&sigma;<sup>2</sup></sup></blockquote>
+
+<figure>
+  <img src="img/probability/nt-gaussian.png" alt="Handwritten note: normal density function, normal distribution function G(x), and error function erf(x) = G(x) - 1/2, with bell-curve and S-curve figures.">
+  <figcaption>From the notes &mdash; normal density, distribution and error function.</figcaption>
+</figure>
+
+<p><strong>Properties:</strong> 1. G(&infin;) = 1. 2. (1/a&radic;2&pi;) &int;<sub>x<sub>1</sub></sub><sup>x<sub>2</sub></sup> e<sup>&minus;(x&minus;b)<sup>2</sup>/2a<sup>2</sup></sup> dx = G((x<sub>2</sub>&minus;b)/a) &minus; G((x<sub>1</sub>&minus;b)/a). Central Limit Theorem states that under very general conditions the limiting distribution of the average of any number of independent random variables is normal.</p>
+
+<h3>Exponential Distribution</h3>
+
+<figure>
+  <img src="img/probability/nt-exponential.png" alt="Handwritten note: exponential distribution density f(x) = lambda e^(-lambda x) for x >= 0, with density and distribution function graphs.">
+  <figcaption>From the notes &mdash; the exponential distribution.</figcaption>
+</figure>
+
+<p>x is exponential with parameter &lambda; if its density function is given by f<sub>x</sub>(x) = &lambda;e<sup>&minus;&lambda;x</sup> for x &ge; 0, and 0 for x &lt; 0 (F<sub>x</sub>(x) = 1 &minus; e<sup>&minus;&lambda;x</sup>). If occurance of events over non-overlapping intervals are independent, such as arrival times of telephone calls or bus arrival times at bus stops, then waiting time distribution of these event can be shown exponential.</p>
+
+<p><strong>Memory less Property:</strong> Let s, t &ge; 0; consider events {x &gt; s+t} and {x &gt; s}. Then P{x &gt; s+t | x &gt; s} = P{x &gt; s+t}/P{x &gt; s} = e<sup>&minus;&lambda;(s+t)</sup>/e<sup>&minus;&lambda;s</sup> = e<sup>&minus;&lambda;t</sup> = P{x &gt; t}. Only exponential distribution has this property.</p>
+
+<h3>Poisson Distribution</h3>
+
+<figure>
+  <img src="img/probability/nt-poisson.png" alt="Handwritten note: Poisson's distribution P(x=k) = e^(-a) a^k / k!, and f(x) = sum of Pi delta(x - xi).">
+  <figcaption>From the notes &mdash; the Poisson distribution.</figcaption>
+</figure>
+
+<p>A random variable x is said to be Poisson distributed with parameter a if it takes 0, 1, &hellip;, n with P(x = k) = e<sup>&minus;a</sup> a<sup>k</sup>/k!, k = 0, 1, 2. Thus f(x) = &sum;<sub>i</sub> P<sub>i</sub> &delta;(x&minus;x<sub>i</sub>) = &sum;<sub>k=0</sub><sup>&infin;</sup> e<sup>&minus;a</sup> (a<sup>k</sup>/k!) &delta;(x&minus;k).</p>
+
+<p>Other special random variables in the notes include the <strong>Gamma</strong>, <strong>Uniform</strong>, <strong>Cauchy</strong>, <strong>Bernoulli</strong> (P{x=1} = P, P{x=0} = q = 1&minus;p), <strong>Binomial</strong> (P(Y=k) = <sup>n</sup>C<sub>k</sub> p<sup>k</sup>q<sup>n&minus;k</sup>, p+q = 1) and <strong>Geometric</strong> (P(x=k) = pq<sup>k&minus;1</sup>, k = 1, 2, 3) distributions.</p>
+
+<h2>Asymptotic Approximations of Random Variable</h2>
+
+<p><strong>Normal Approximation (Demoivre Laplace Theorem):</strong> If n is large, npq &gt;&gt; 1, then for k in &radic;(npq) neighbourhood of np we have <sup>n</sup>C<sub>k</sub> p<sup>k</sup>q<sup>n&minus;k</sup> = (1/&radic;(2&pi;npq)) e<sup>&minus;(k&minus;np)<sup>2</sup>/2npq</sup>.</p>
+
+<p><strong>Poisson Approximation:</strong> e<sup>&minus;a</sup> a<sup>k</sup>/k! is called Poisson Function. If n is large, p is very small, then for k of the order of np, we have <sup>n</sup>C<sub>k</sub> p<sup>k</sup>q<sup>n&minus;k</sup> &cong; e<sup>&minus;a</sup> a<sup>k</sup>/k! with a = np.</p>
+
+<p><strong>Law of Large Numbers:</strong> P( lim<sub>n&rarr;&infin;</sub> P(|k/n &minus; P| &le; &epsilon;) ) = 1 for any &epsilon; (Strong Law of Large Numbers).</p>
+
+<h2>Functions of One Random Variable</h2>
+
+<p>The random variable Y by Y = g(x). g(x) &rarr; deterministic function. Given F<sub>x</sub>(x) and Y = g(x), find F<sub>Y</sub>(y) and f<sub>Y</sub>(y).</p>
+
+<figure>
+  <img src="img/probability/nt-functions-rv.png" alt="Handwritten note: Determination of f_Y(y), Fundamental Theorem — f_Y(y) = f_x(x1)/|g'(x1)| + ... + f_x(xn)/|g'(xn)| where x1, x2, ... are roots of y = g(x).">
+  <figcaption>From the notes &mdash; the fundamental theorem for functions of a random variable.</figcaption>
+</figure>
+
+<p><strong>Determination of f<sub>Y</sub>(y) &mdash; Fundamental Theorem:</strong> If Y = g(x), then f<sub>Y</sub>(y) = f<sub>x</sub>(x<sub>1</sub>)/|g&prime;(x<sub>1</sub>)| + &hellip; + f<sub>x</sub>(x<sub>n</sub>)/|g&prime;(x<sub>n</sub>)| where x<sub>1</sub>, x<sub>2</sub>, &hellip; are root of y = g(x) i.e y = g(x<sub>1</sub>) = g(x<sub>2</sub>).</p>
+
+<h2>Mean and Variance</h2>
+
+<p>The expected value or mean of a discrete random variable is E{x} = &sum; x<sub>i</sub>P<sub>i</sub> where P<sub>i</sub> = P{x = x<sub>i</sub>}. expected value or mean of a random variable is E{x} = &int;<sub>&minus;&infin;</sub><sup>&infin;</sup> x f<sub>x</sub>(x) dx.</p>
+
+<p><strong>Conditional Mean:</strong> E{x|M} = &int;<sub>&minus;&infin;</sub><sup>&infin;</sup> x f(x|M) dx for continuous. E{x|M} = &sum;<sub>i</sub> x<sub>i</sub> P{x = x<sub>i</sub>|M} for discrete.</p>
+
+<p><strong>Variance:</strong> Variance of a random variable describes how spread the random variable is, greater variance, more spread, more random.</p>
+
+<figure>
+  <img src="img/probability/nt-variance.png" alt="Handwritten note: variance of discrete random variable sigma^2 = integral (x - eta)^2 f_x(x) dx, sigma^2 = sum (xi - eta)^2 Pi, and sigma^2 = E{x^2} - eta^2.">
+  <figcaption>From the notes &mdash; variance.</figcaption>
+</figure>
+
+<p>The variance of discrete random variable x is &sigma;<sup>2</sup> = &int;<sub>&minus;&infin;</sub><sup>&infin;</sup> (x&minus;&eta;)<sup>2</sup> f<sub>x</sub>(x) dx, &sigma; &rarr; std. deviation of x. &sigma;<sup>2</sup> = &sum;(x<sub>i</sub>&minus;&eta;)<sup>2</sup> P<sub>i</sub>. &sigma;<sup>2</sup> = E{x<sup>2</sup>} &minus; &eta;<sup>2</sup>. Variance is moment of inertia of f(x) around its center of gravity. Mean is center of gravity.</p>
+
+<p><strong>Moments:</strong> m<sub>n</sub> = E{x<sup>n</sup>} = &int;<sub>&minus;&infin;</sub><sup>&infin;</sup> x<sup>n</sup> f(x) dx. <strong>Central Moments:</strong> &mu;<sub>n</sub> = E{(x&minus;&eta;)<sup>n</sup>} = &int;<sub>&minus;&infin;</sub><sup>&infin;</sup> (x&minus;&eta;)<sup>n</sup> f<sub>x</sub>(x) dx.</p>
+
+<h2>Chebyshev Inequality and Characteristic Function</h2>
+
+<figure>
+  <img src="img/probability/nt-chebyshev-charfn.png" alt="Handwritten note: Chebyshev Inequality P{|x - eta| >= epsilon} <= sigma^2 / epsilon^2, and Characteristic Function phi(w) = integral f(x) e^(jwx) dx.">
+  <figcaption>From the notes &mdash; Chebyshev inequality and the characteristic function.</figcaption>
+</figure>
+
+<p><strong>Chebycheff Inequality &mdash; Theorem:</strong> for any &epsilon; &gt; 0, P{|x&minus;&eta;| &ge; &epsilon;} &le; &sigma;<sup>2</sup>/&epsilon;<sup>2</sup>. <strong>Generalization:</strong> If f(x) = 0 for x &lt; 0, then for any &alpha; &gt; 0, P{x &ge; &alpha;} &le; &eta;/&alpha;.</p>
+
+<p><strong>Characteristic Function:</strong> &phi;(w) = &int;<sub>&minus;&infin;</sub><sup>&infin;</sup> f(x) e<sup>jwx</sup> dx [Fourier Transform] is called Characteristic Equation of Random Variable x. Property of &phi;(w): |&phi;(w)| &le; &phi;(0) = 1. Inverse Formula: f(x) = (1/2&pi;) &int;<sub>&minus;&infin;</sub><sup>&infin;</sup> &phi;(w) e<sup>&minus;jwx</sup> dw.</p>
+
+<h2>Reference</h2>
+
+<ol>
+  <li>ECE-GY 6303 Probability and Stochastic Processes.</li>
+</ol>

@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "probability-and-stochastic-processes",
+      title: "Probability and Stochastic Processes",
+      date: "2026-09-04",
+      excerpt: "Notes from ECE-GY 6303 — set theory, the axioms of probability, conditional probability and Bayes, random variables, distributions, and expectation, with snippets from the written notes.",
+      tags: ["Probability", "Notes", "Math"],
+      category: "Technical"
+    },
+    {
       slug: "factor-graphs-nonlinear-least-squares",
       title: "Factor Graphs and Nonlinear Least Squares",
       date: "2026-09-04",
