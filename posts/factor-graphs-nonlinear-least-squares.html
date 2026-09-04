@@ -1,0 +1,280 @@
+<p>Notes on the mathematics behind factor graphs — from MAP inference as a nonlinear least squares problem, through direct linear solvers, to nonlinear optimization.</p>
+
+<h2>MAP Inference and Nonlinear Least Squares</h2>
+
+<blockquote>X<sub>MAP</sub> = argmax &phi;(x) = argmax &prod; &phi;<sub>i</sub>(x<sub>i</sub>)</blockquote>
+
+<blockquote>&phi;<sub>i</sub>(x<sub>i</sub>) &prop; exp{ &minus;&frac12; &Vert; h<sub>i</sub>(x<sub>i</sub>) &minus; z<sub>i</sub> &Vert;<sup>2</sup><sub>&Sigma;<sub>i</sub></sub> }</blockquote>
+
+<blockquote>X<sub>MAP</sub> = argmin &sum; &Vert; h<sub>i</sub>(x<sub>i</sub>) &minus; z<sub>i</sub> &Vert;<sup>2</sup><sub>&Sigma;<sub>i</sub></sub> &nbsp;&rarr;&nbsp; minimize a sum of non-linear least squares</blockquote>
+
+<p>&phi;<sub>i</sub>(x<sub>i</sub>) &rarr; factor graph potentials. h<sub>i</sub>(&middot;) &rarr; measurement functions.</p>
+
+<h2>Linearizing the Measurement Functions</h2>
+
+<p>Linearize all measurement functions h<sub>i</sub>(&middot;) in non-linear least squares objective function using Taylor Expansion:</p>
+
+<blockquote>h<sub>i</sub>(x<sub>i</sub>) = h<sub>i</sub>(x<sub>i</sub><sup>0</sup> + &Delta;<sub>i</sub>) &asymp; h<sub>i</sub>(x<sub>i</sub><sup>0</sup>) + H<sub>i</sub>&Delta;<sub>i</sub></blockquote>
+
+<p>where measurement jacobian H<sub>i</sub>, multivariate partial derivative of h<sub>i</sub>(&middot;) at a given linearization point x<sub>i</sub><sup>0</sup>:</p>
+
+<blockquote>H<sub>i</sub> &triangleq; &part;h<sub>i</sub>(x<sub>i</sub>) / &part;x<sub>i</sub> |<sub>x<sub>i</sub><sup>0</sup></sub></blockquote>
+
+<p>&Delta;<sub>i</sub> &triangleq; x<sub>i</sub> &minus; x<sub>i</sub><sup>0</sup> State Update Vector.</p>
+
+<p>Substituting Taylor series expansion into non-linear least square expression to obtain a linear least square problem in state update vector &Delta;:</p>
+
+<blockquote>&Delta; = argmin &sum; &Vert; h<sub>i</sub>(x<sub>i</sub><sup>0</sup>) + H<sub>i</sub>&Delta;<sub>i</sub> &minus; z<sub>i</sub> &Vert;<sup>2</sup><sub>&Sigma;<sub>i</sub></sub>
+= argmin &sum; &Vert; H<sub>i</sub>&Delta;<sub>i</sub> &minus; { z<sub>i</sub> &minus; h<sub>i</sub>(x<sub>i</sub><sup>0</sup>) } &Vert;<sup>2</sup><sub>&Sigma;<sub>i</sub></sub></blockquote>
+
+<p>z<sub>i</sub> &minus; h<sub>i</sub>x<sub>i</sub><sup>0</sup> is prediction error at linearization point (difference between actual and predicted measurement).</p>
+
+<h2>Change of Variables (Whitening)</h2>
+
+<p>Change of variables &rarr; Drop covariance matrices &Sigma;<sub>i</sub> &rarr; w/ &Sigma;<sup>1/2</sup> the matrix square root of &Sigma;.</p>
+
+<blockquote>&Vert;e&Vert;<sup>2</sup><sub>&Sigma;</sub> &triangleq; e<sup>T</sup>&Sigma;<sup>&minus;1</sup>e = (&Sigma;<sup>&minus;1/2</sup>e)<sup>T</sup>(&Sigma;<sup>&minus;1/2</sup>e) = &Vert; &Sigma;<sup>&minus;1/2</sup>e &Vert;<sup>2</sup><sub>2</sub></blockquote>
+
+<p>eliminate the covariance &Sigma;<sub>i</sub> by pre-multiplying by Jacobian H<sub>i</sub> and prediction error in each term with &Sigma;<sub>i</sub><sup>&minus;1/2</sup>:</p>
+
+<blockquote>A<sub>i</sub> = &Sigma;<sub>i</sub><sup>&minus;1/2</sup> H<sub>i</sub><br>b<sub>i</sub> = &Sigma;<sub>i</sub><sup>&minus;1/2</sup> (z<sub>i</sub> &minus; h<sub>i</sub>(x<sub>i</sub><sup>0</sup>))</blockquote>
+
+<p>process &mdash; form of whitening &rarr; dividing each term by the measurement std. deviation &sigma;<sub>i</sub>. Eliminates the units of measurement so different rows can be combined into single cost function.</p>
+
+<h2>Standard Least Squares Problem</h2>
+
+<blockquote>&Delta;* = argmin &sum; &Vert; A<sub>i</sub>&Delta;<sub>i</sub> &minus; b<sub>i</sub> &Vert;<sup>2</sup><sub>2</sub> = argmin &Vert; A&Delta; &minus; b &Vert;<sup>2</sup><sub>2</sub></blockquote>
+
+<p>A and b &rarr; obtained by collecting all whitened Jacobian matrices A<sub>i</sub> and whitened prediction errors b<sub>i</sub> into one large matrix A and right hand side vector b.</p>
+
+<p>Jacobian A is a large but sparse matrix with block structure that mirrors the structure of underlying factor graph.</p>
+
+<h2>Direct Method for Least Squares</h2>
+
+<p>For full rank matrix (m&times;n) A, with m&ge;n, the unique least square solution &Delta;* = argmin &Vert;A&Delta; &minus; b&Vert;<sup>2</sup><sub>2</sub> can be found by solving the normal equation:</p>
+
+<blockquote>(A<sup>T</sup>A) &Delta;* = A<sup>T</sup>b</blockquote>
+
+<p>done by factoring information matrix &Lambda;, defined and factored as:</p>
+
+<blockquote>&Lambda; &triangleq; A<sup>T</sup>A = R<sup>T</sup>R</blockquote>
+
+<p>above, Cholesky Triangle R is an upper triangular n&times;n matrix and computed using Cholesky Factorization, variant of LU factorization for symmetric positive definite matrices. &Delta;* can be found by solving:</p>
+
+<blockquote>R<sup>T</sup>y = A<sup>T</sup>b &nbsp;and&nbsp; R&Delta;* = y &nbsp;by forward-backward substitution</blockquote>
+
+<p>For dense matrices, Cholesky Factorization requires (n<sup>3</sup>/3) flops and entire algorithm, including computing half symmetric A<sup>T</sup>A, requires (m + n/3)n<sup>2</sup> flops. Also use LDL factorization, a variant of Cholesky Decomposition that avoids compution of square roots.</p>
+
+<h2>QR Factorization</h2>
+
+<p>Alternative to Cholesky Factorization, more accurate and more numerically stable &rarr; proceed via QR Factorization &rarr; works w/o computing information matrix &Lambda;. Instead compute QR Factorization of A itself along with its corresponding RHS:</p>
+
+<blockquote>A = Q [ R ; 0 ] &nbsp;&nbsp; [ d ; e ] = Q<sup>T</sup>b</blockquote>
+
+<p>Q &mdash; m&times;m orthogonal matrix, d &isin; &Ropf;<sup>n</sup>, e &isin; &Ropf;<sup>m&times;n</sup>, R &mdash; same upper triangle Cholesky Triangle.</p>
+
+<p><strong>Preferred Method:</strong> Factorizing a dense matrix A is to compute R column by column (left to right). For each column j, all non-zero elements below diagonal are zeroed out by multiplying A on the left with Household reflection matrix H<sub>j</sub>. After n iterations, A is completely factorized:</p>
+
+<blockquote>H<sub>n</sub> &hellip; H<sub>2</sub> H<sub>1</sub> A = Q<sup>T</sup>A = [ R ; 0 ]</blockquote>
+
+<p>Orthogonal Matrix Q &rarr; not formed. Transformed RHS Q<sup>T</sup>b &rarr; computed by appending b as an extra column to A. Because Q factor is orthogonal:</p>
+
+<blockquote>&Vert; A&Delta; &minus; b &Vert;<sup>2</sup><sub>2</sub> = &Vert; Q<sup>T</sup>A&Delta; &minus; Q<sup>T</sup>b &Vert;<sup>2</sup><sub>2</sub> = &Vert; R&Delta; &minus; d &Vert;<sup>2</sup><sub>2</sub> + &Vert;e&Vert;<sup>2</sup><sub>2</sub></blockquote>
+
+<p>&Vert;e&Vert;<sup>2</sup><sub>2</sub> &rarr; least squares sum of residuals. Least Squares solution &Delta;* can be obtained by solving the triangular system R&Delta;* = d via back substitution.</p>
+
+<p>The cost of QR is dominated by cost of Household Reflections, which is 2(m &minus; n/3)n<sup>2</sup>. Comparing w/ Cholesky, both algorithms require O(mn<sup>2</sup>) operations when m&gt;&gt;n; but QR factorization is slower by a factor of 2.</p>
+
+<p><strong>Note:</strong> Upper Triangular Factor R obtained using QR Factorization is same as obtained by Cholesky Factorization:</p>
+
+<blockquote>A<sup>T</sup>A = [R ; 0]<sup>T</sup> Q<sup>T</sup>Q [R ; 0] = R<sup>T</sup>R &nbsp;(using Q is orthogonal)</blockquote>
+
+<p>Efficient algorithm for factorizing large sparse matrix for both QR and Cholesky variants &rarr; depends on amount of non-zeroes and sparsity structure &rarr; cost of Sparse factorization can be far lower than its dense equivalent. Software Implementation &rarr; CHOLMOD, SuiteSparseQR.</p>
+
+<p>In practice, sparse Cholesky and LDL Factorization outperform QR Factorization on sparse problems as well, not just a constant factor. Optimization problem associated with SLAM (stated in terms of sparse linear algebra) comes down to factorizing either the information matrix &Lambda; or Jacobian matrix A into square root form.</p>
+
+<h2>Step by Step Calculation</h2>
+
+<p><strong>Cholesky Factorization &mdash; fit straight line y = mx + c to data points (0,1); (1,2); (2,2).</strong></p>
+
+<p>Matrix Setup, system of linear equation for three points:</p>
+
+<blockquote>c&middot;1 + m&middot;0 = 1<br>c&middot;1 + m&middot;1 = 2<br>c&middot;1 + m&middot;2 = 2</blockquote>
+
+<p>converts to matrix form A&Delta; = b:</p>
+
+<blockquote>[ 1 0 ; 1 1 ; 1 2 ] [ c ; m ] = [ 1 ; 2 ; 2 ]</blockquote>
+
+<p>Cholesky method &rarr; calculating information matrix (A<sup>T</sup>A) &amp; Right Hand side Vector (A<sup>T</sup>b):</p>
+
+<blockquote>A<sup>T</sup>A = [ 1 1 1 ; 0 1 2 ] [ 1 0 ; 1 1 ; 1 2 ] = [ 3 3 ; 3 5 ]</blockquote>
+
+<blockquote>A<sup>T</sup>b = [ 1 1 1 ; 0 1 2 ] [ 1 ; 2 ; 2 ] = [ 5 ; 6 ]</blockquote>
+
+<p>Decompose matrix [ 3 3 ; 3 5 ] into upper triangular matrix R such that R<sup>T</sup>R = A, R = [ R<sub>11</sub> R<sub>12</sub> ; 0 R<sub>22</sub> ]:</p>
+
+<blockquote>R<sub>11</sub><sup>2</sup> = 3 &rArr; R<sub>11</sub> = &radic;3<br>R<sub>11</sub>R<sub>12</sub> = 3 &rArr; R<sub>12</sub> = 3/&radic;3 = &radic;3<br>R<sub>12</sub><sup>2</sup> + R<sub>22</sub><sup>2</sup> = 5 &rArr; R<sub>22</sub> = &radic;(5&minus;3) = &radic;2</blockquote>
+
+<blockquote>R = [ &radic;3 &radic;3 ; 0 &radic;2 ]</blockquote>
+
+<p>Forward Substitution, R<sup>T</sup>y = A<sup>T</sup>b, intermediate vector y = [y<sub>1</sub>, y<sub>2</sub>]<sup>T</sup>:</p>
+
+<blockquote>&radic;3 y<sub>1</sub> = 5 &rArr; y<sub>1</sub> = 5/&radic;3<br>&radic;3 y<sub>1</sub> + &radic;2 y<sub>2</sub> = 6 &rArr; y<sub>2</sub> = 1/&radic;2<br>y = [ 5/&radic;3 , 1/&radic;2 ]</blockquote>
+
+<p>Solve Triangular System R&Delta; = y:</p>
+
+<blockquote>c&radic;3 + m&radic;3 = 5/&radic;3<br>m&radic;2 = 1/&radic;2 &rArr; m = &frac12;<br>c&radic;3 + &radic;3/2 = 5/&radic;3 &rArr; c = 7/6</blockquote>
+
+<p><strong>QR Factorization &mdash; solving A&Delta; = b for the line y = mx + c passing through (1,0); (1,2); (2,2).</strong> [A = [1 0 ; 1 1 ; 1 2], b = [1 ; 2 ; 2]] &rarr; factor A into Q (orthogonal unit vectors) and R (upper triangular). Computers usually utilize "Household reflections" (faster for machines), but for mathematical understanding we use Gram-Schmidt process.</p>
+
+<p>Columns of A as vectors: v<sub>1</sub> = [1 1 1]<sup>T</sup>, v<sub>2</sub> = [0 1 2]<sup>T</sup>. Turn v<sub>1</sub> and v<sub>2</sub> into perpendicular unit vectors q<sub>1</sub> and q<sub>2</sub>.</p>
+
+<p>Find q<sub>1</sub> (Normalize first column). Length of v<sub>1</sub> = &radic;(1<sup>2</sup>+1<sup>2</sup>+1<sup>2</sup>) = &radic;3:</p>
+
+<blockquote>q<sub>1</sub> = v<sub>1</sub> / &Vert;v<sub>1</sub>&Vert; = [ 1/&radic;3 ; 1/&radic;3 ; 1/&radic;3 ]</blockquote>
+
+<p>Find q<sub>2</sub> (Remove shadows of q<sub>1</sub> from v<sub>1</sub>). First, find projection of v<sub>2</sub> in direction of q<sub>1</sub>:</p>
+
+<blockquote>proj = (v<sub>2</sub> &middot; q<sub>1</sub>) = ( 0&middot;1/&radic;3 + 1&middot;1/&radic;3 + 2&middot;1/&radic;3 ) = &radic;3</blockquote>
+
+<p>Subtract projection from v<sub>2</sub> to get perpendicular P<sub>2</sub>:</p>
+
+<blockquote>P<sub>2</sub> = v<sub>2</sub> &minus; (&radic;3) q<sub>1</sub> = [0 ; 1 ; 2] &minus; [1 ; 1 ; 1] = [&minus;1 ; 0 ; 1]</blockquote>
+
+<p>Normalize P<sub>2</sub> to get q<sub>2</sub>. Length of P<sub>2</sub> = &radic;((&minus;1)<sup>2</sup>+(0)<sup>2</sup>+(1)<sup>2</sup>) = &radic;2:</p>
+
+<blockquote>q<sub>2</sub> = P<sub>2</sub> / &Vert;P<sub>2</sub>&Vert; = [ &minus;1/&radic;2 ; 0 ; 1/&radic;2 ]</blockquote>
+
+<blockquote>Q = [ 1/&radic;3 &minus;1/&radic;2 ; 1/&radic;3 0 ; 1/&radic;3 1/&radic;2 ]</blockquote>
+
+<p>Form matrix R &rarr; used to build the original columns using new bases. R<sub>11</sub> &mdash; length of column 1 = &radic;3; R<sub>12</sub> &mdash; projection of column 2 onto q<sub>1</sub> = &radic;3; R<sub>22</sub> &mdash; length of perpendicular part of column 2 = &radic;2:</p>
+
+<blockquote>R = [ &radic;3 &radic;3 ; 0 &radic;2 ]</blockquote>
+
+<p>Transform the RHS (Q<sup>T</sup>b). Transform target vector b by multiplying Q<sup>T</sup>, creates vector d used in back substitution:</p>
+
+<blockquote>d = Q<sup>T</sup>b = [ 1/&radic;3 1/&radic;3 1/&radic;3 ; &minus;1/&radic;2 0 1/&radic;2 ] [ 1 ; 2 ; 2 ] = [ 5/&radic;3 ; 1/&radic;2 ]</blockquote>
+
+<p>Solve Triangular System R&Delta; = d:</p>
+
+<blockquote>c&radic;3 + m&radic;3 = 5/&radic;3<br>m&radic;2 = 1/&radic;2 &rArr; m = 0.5<br>c&radic;3 = 5/&radic;3 &minus; &radic;3/2 &rArr; c = 7/6</blockquote>
+
+<h2>Non-Linear Optimization of MAP Inference</h2>
+
+<p>Non-linear least squares problem &rarr; can't be solved directly &rarr; requires an iterative solution starting with suitable initial estimate. Algorithms &rarr; differ in how they locally approximate the cost function and how they find an improved estimate on local approximation.</p>
+
+<p>Cost Function:</p>
+
+<blockquote>g(x) &triangleq; &sum; &Vert; h<sub>i</sub>(x<sub>i</sub>) &minus; z<sub>i</sub> &Vert;<sup>2</sup><sub>&Sigma;<sub>i</sub></sub></blockquote>
+
+<p>corresponds to non-linear factor graphs derived from measurements along with prior densities on some or all unknowns.</p>
+
+<p>Basic Structure of Algorithms: Start from an initial estimate x<sub>0</sub>. In each iteration, an update step is calculated &Delta; and applied to obtain next estimate x<sup>t+1</sup> = x<sup>t</sup> + &Delta;. Process ends when certain convergence criteria are reached, such as change falling below small threshold.</p>
+
+<h3>Steepest Descent</h3>
+
+<p>Steepest Descent (SD) or gradient descent uses direction of steepest descent at the current estimate to calculate the following update step:</p>
+
+<blockquote>&Delta;<sub>sd</sub> = &minus;&alpha; &nabla;g(x) |<sub>x=x<sup>t</sup></sub></blockquote>
+
+<p>negative gradient &rarr; identify the direction of steepest descent. For Non-linear least squares objective function, we compute Jacobian A to locally approximate g(x) &asymp; &Vert;A(x&minus;x<sup>t</sup>) &minus; b&Vert;<sup>2</sup><sub>2</sub> and obtain exact gradient at the linearization point x<sup>t</sup>:</p>
+
+<blockquote>&nabla;g(x) |<sub>x=x<sup>t</sup></sub> = &minus;2A<sup>T</sup>b</blockquote>
+
+<p>step size &alpha; &rarr; carefully choosen to balance safe updates &amp; reasonable convergence speed. SD &rarr; simple algorithm but suffer from slow convergence near the minimum.</p>
+
+<h3>Gauss-Newton</h3>
+
+<p>Gauss Newton (GN) provides faster convergence by using 2nd order update. GN exploits special structure of non-linear least squares problem to approx. the Hessian by the square of Jacobian as A<sup>T</sup>A. GN update step is obtained by solving:</p>
+
+<blockquote>(A<sup>T</sup>A) &Delta;* = A<sup>T</sup>b &nbsp;&rArr;&nbsp; A<sup>T</sup>A &Delta;<sub>gn</sub> = A<sup>T</sup>b</blockquote>
+
+<p>by methods such as Cholesky or QR Factorization. For a well behaved objective function, and good initial estimate, Gauss Newton exhibits nearly quadratic convergence. If Quadratic is poor, GN step can lead to new estimate that is further from minimum and subsequent divergence.</p>
+
+<h3>Levenberg-Marquardt</h3>
+
+<p>LM Algorithm allows iterating multiple times to convergence while controlling in which region one is willing to trust quadratic approximation made by Gauss Newton. Hence, method is often called Trust Region Method.</p>
+
+<p>To compute advantages of both SD and GN methods, Levemberg proposed to modify the equation (A<sup>T</sup>A)&Delta;* = A<sup>T</sup>b by adding non-negative constant &lambda; &isin; &Ropf;<sup>+</sup> &cup; {0} to diagonal:</p>
+
+<blockquote>(A<sup>T</sup>A + &lambda;I) &Delta;<sub>lb</sub> = A<sup>T</sup>b</blockquote>
+
+<p>Note that for &lambda; = 0 we obtain GN and for large &lambda;, approx. obtaining &Delta;* &asymp; (1/&lambda;) A<sup>T</sup>b, an update in negative gradient direction of cost function g(x). LM &rarr; blends between Gauss Newton and Steepest Descent Methods.</p>
+
+<p>Marquardt &rarr; proposed considering the scaling of diagonal entries to provide faster convergence:</p>
+
+<blockquote>(A<sup>T</sup>A + &lambda; diag(A<sup>T</sup>A)) &Delta;<sub>lm</sub> = A<sup>T</sup>b</blockquote>
+
+<p>modification &rarr; larger steps in steepest descent direction if the gradient is small because there the inverse of diagonal enteries will be large. Conversely, in steep direction of objective function the algorithm become more cautious and takes smaller steps.</p>
+
+<p><strong>Levenberg-Marquardt Algorithm</strong> (quadratic cost function g(), init. estm. x<sup>0</sup>):</p>
+
+<pre><code>1  function LM(g(), x&#8304;)
+2  &lambda; = 10&#8315;&#8308;
+3  t = 0
+4  repeat
+5      A, b  &larr; linearize g(x) at x&#7511;
+6      &Delta;    &larr; solve (A&#7488;A + &lambda; diag(A&#7488;A))&Delta; = A&#7488;b
+7      if g(x&#7511; + &Delta;) &lt; g(x&#7511;) then
+8          x&#7511;&#8314;&#185; = x&#7511; + &Delta;            &#9656; accept update
+9          &lambda; &larr; &lambda;/10
+10     else
+11         x&#7511;&#8314;&#185; = x&#7511;                &#9656; reject update
+12         &lambda; &larr; &lambda; * 10
+13     t &larr; t+1
+14 until convergence
+15 return x&#7511;                     &#9656; return latest estimate</code></pre>
+
+<p><strong>Detailed Explanation of LM Algorithm</strong> &rarr; Trying to find the lowest point in dark, hilly valley (minimizing error). Two ways to walk:</p>
+
+<ol>
+  <li>The safe way (Gradient Descent) &mdash; take small steps straight downhill, slow but gauranteed to get you lower eventually.</li>
+  <li>The Fast Way (Gauss Newton) &mdash; Assume valley is a perfect bowl shape and try to jump straight to the bottom. extremely fast but if ground isn't a bowl, you might jump of cliff.</li>
+</ol>
+
+<p>Levenberg Marquardt Algorithm &rarr; Smart hybrid. Switches between these two methods automatically using "damping" parameter &lambda;.</p>
+
+<p><strong>Setup (Lines 1-3):</strong> cost function g() (error we want to minimize) and initial guess x<sup>0</sup>. Initialization: set &lambda; = 10<sup>&minus;4</sup> (trust knob). Small number &rarr; be agressive (fast way); Large number &rarr; be careful (safe way).</p>
+
+<p><strong>Loop (Line 4):</strong> Repeat the following process until we find solution (convergence).</p>
+
+<p><strong>Math and Move (Line 5&amp;6):</strong> Linearize &mdash; algorithm looks at the slope of ground right where we are standing (calculating derivatives / jacobian). Solve for &Delta; &mdash; calculate potential step. If &lambda; is high &rarr; acts like gradient descent (small, safe steps). If &lambda; is low &rarr; acts like Gauss-Newton (Fast, agressive jumps).</p>
+
+<p><strong>Is this better? Check (Line 7):</strong> Algorithm asks "If I take step &Delta;, is the new error lower than current error?" (g(x<sup>t</sup> + &Delta;) &lt; g(x<sup>t</sup>)).</p>
+
+<p><strong>Success (Lines 8-9):</strong> Yes, the error is lower. Accept Update - Take the step (x<sup>t+1</sup> = x<sup>t</sup> + &Delta;). Get Bolder - decrease &lambda; (divide by 10), since the last agressive worked, we try to be even more agressive and faster next time.</p>
+
+<p><strong>Failure (Lines 10-12):</strong> No, the error got worse. Reject Update - We don't move, stay at x<sup>t</sup>. More careful - increase &lambda; (multiply by 10), bowl assumption "failed", so we need to switch closer to gradient descent (safe mode) to find better path.</p>
+
+<p><strong>Result:</strong> changes become tiny (convergence), we return to final position x<sup>t</sup>.</p>
+
+<p><strong>Difference between GN and LM:</strong> LM rejects updates that would lead to higher sum squared residuals. A rejected update means that non-linear function is locally not well behaved and smaller steps are needed &mdash; achieved by heurestically increasing the value of &lambda; (example, multiply value by factor 10) and resolving normal equations. On other hand, if steps leads to reduced sum of squared residuals, it is accepted and state estimate is updated accordingly. In this case, &lambda; is reduced (by dividing by factor 10), and algorithm repeats with new linearization point until convergence.</p>
+
+<h2>Dogleg Minimization</h2>
+
+<p>Powell's Dogleg (PDL) algorithm can be more effient alternative to LM. Disadvantage of Levenberg Marquardt Algorithm is that in case a step gets rejected, the modified information matrix has to be refactored, which is most expensive component of algorithm.</p>
+
+<p><strong>Key Idea</strong> &rarr; PDL separately computes GN and SD steps and then combine appropriately. If step gets rejected, the direction of steps are still valid and they can be combined in different way until a reduction in cost is achieved. Hence each update of the state estimate only involves one matrix factorization, opposed to several.</p>
+
+<figure>
+  <img src="img/factorgraph/fig-dogleg-trust-region.png" alt="Dogleg diagram: from the current estimate inside a trust-region circle, the gradient descent update points one way and the Gauss Newton update points further out; the dogleg update follows the steepest-descent direction then bends toward the Gauss Newton direction, stopping at the trust region boundary.">
+  <figcaption>Powell's Dogleg update within the trust region. Diagram from the notes.</figcaption>
+</figure>
+
+<p>The combined step starts with the SD update, followed by a sharp bend toward GN update, but stopping at the trust region boundary. Unlike LM, PDL maintains an explicit trust region &Delta; within which we trust linear assumption.</p>
+
+<p>The appropriateness of linear approximation is determined by gain ratio:</p>
+
+<blockquote>&rho; = [ g(x<sup>t</sup>) &minus; g(x<sup>t</sup> + &Delta;) ] / [ L(0) &minus; L(&Delta;) ]</blockquote>
+
+<p>where L(&Delta;) = A<sup>T</sup>A&Delta; &minus; A<sup>T</sup>b is linearization (non-linear quadratic) of cost function g at current estimate x<sup>t</sup>.</p>
+
+<p>If &rho; is small i.e &rho; &lt; 0.25, cost hasn't reduced as predicted by linearization and trust region is reduced. On other hand, if reduction is as predicted (or better) i.e &rho; &gt; 0.75, then trust region is increased depending on magnitude of update vector and step is accepted.</p>
+
+<p><strong>Note:</strong> Both Algorithms, GN and PDL, require the measurement Jacobian to be full rank so the A<sup>T</sup>A is invertible. When encountering under-constrained systems (numerically poor constrained) the LM Algorithm can be used instead even convergence speed might be impacted.</p>
+
+<h2>References</h2>
+
+<ol>
+  <li>Frank Dellaert, Michael Kaess. "Factor Graphs for Robot Perception." Foundations and Trends in Robotics, 2017.</li>
+</ol>

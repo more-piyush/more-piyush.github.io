@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "factor-graphs-nonlinear-least-squares",
+      title: "Factor Graphs and Nonlinear Least Squares",
+      date: "2026-09-04",
+      excerpt: "Notes on the mathematics behind factor graphs — MAP inference as a nonlinear least squares problem, whitening, direct linear solvers (Cholesky and QR), and nonlinear optimization with Gauss-Newton, Levenberg-Marquardt, and Powell's Dogleg.",
+      tags: ["AI/ML", "Optimization", "Research"],
+      category: "Technical"
+    },
+    {
       slug: "marginal-likelihood-and-model-selection",
       title: "Marginal Likelihood and Model Selection",
       date: "2026-09-04",
