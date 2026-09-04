@@ -1,0 +1,193 @@
+<p>Notes on two papers applying contrastive learning to medical visual representation.</p>
+
+<h2>1. Contrastive Learning-based pretraining improves representation and transferability of diabetic retinopathy classification model</h2>
+
+<p>On a clinical test set of 2500 images, a ResNet 50 model pre trained with CL weights with a neutral style transfer augmentation had a sensitivity, specificity, and area under ROC curve (AUC) of 0.90 (95% CI), 0.85 and 0.91 respectively for, for detecting referable diabetic retinopathy, compared to 0.81, 0.74, and 0.80 and 0.84, 0.79, and 0.83, from two state of the art baseline models (ResNet50 and Inception V3).</p>
+
+<p>At 10% labeled training data, the model retained diagnostic performance to a great extent (AUC: 0.81 in the test set, compared to 0.58 and 0.63 respectively, from the baseline models).</p>
+
+<h3>Abstract</h3>
+
+<p><strong>Importance:</strong> Self supervised contrastive learning based pretraining leads to a robust and generalized deep learning model with small, labeled dataset.</p>
+
+<p><strong>Design and Setting:</strong> CL is a form of self supervision that can leverage unlabeled data to produce pretrained models, authors have developed a CL based framework with neutral style transfer augmentation to produce models with better representation and initialization for the detection of DR in color fundus images. Authors have compared their model (FundusNet - ResNet50 architecture pre-trained with NST integrated CL framework) performance with two state of art baseline models (ResNet50 and Inception V3). Authors further investigate the model performance with reduced label training data to test the robustness of the model when trained with small, labeled dataset. The model is trained and validated on the EyePACS dataset and tested independently on clinical data from UIC.</p>
+
+<p>The validation data from EyePACS consists of 88,692 images from 44,346 individuals. After data curation, the dataset contains 57,722 non-referable DR images and 13,247 referable DR images.</p>
+
+<p><strong>Conclusion:</strong> CL-based pre-training with NST significantly improves DL classification performance, helps the model generalize well (transferable from EyePACS to UIC data), and allows training with small, labeled data - therefore reducing ground truth annotation burden of the clinicians.</p>
+
+<p>In case of referable vs non-referable DR classification, despite the impressive performance the authors make two observations:</p>
+
+<ol>
+  <li>For widespread deployment, the DL models need to be generalized.</li>
+  <li>More data from different sub-populations can lead to better model training, however, this requires larger, more diverse data and also increases the need for the ground truth generation and labeling.</li>
+</ol>
+
+<p>The above problems can be overcomed with a self supervised contrastive learning model for classification of referable and non referable DR.</p>
+
+<h3>Methodology</h3>
+
+<p>In such pipelines, a DL network is trained on a primary task (for representation learning, which requires no ground truth) and then the weights are transferred to the secondary target task (i.e. classification, which requires smaller set of data and ground truth).</p>
+
+<p><strong>Representation Learning:</strong> Model learns effective representation and the characteristic features from the image and then these model weights can then be used for model classification tasks.</p>
+
+<p><strong>Dataset:</strong> The training data of the EyePACS contained retinal fundus photographs from patients with varying degrees of severity of DR. The dataset had 71,548 non-referable (65343 no DR, 6205 mild NPDR) and 17154 referrable (13,153 moderate NPDR, 2087 severe NPDR, and 1914 PDR) DR images with varying resolutions from 433 x 289 up to 5184 x 3456 pixels. Images from the dataset are already labeled with stages of DR (0: no DR; 1: mild DR, 2: moderate DR, 3: severe non-proliferative DR (NPDR), and 4: proliferative DR (PDR)) following the diagnostic criteria for DR.</p>
+
+<p>Authors have defined referrable DR as data which have labels of moderate NPDR and above (label &gt;=2).</p>
+
+<h3>Framework for Contrastive Learning based pretraining</h3>
+
+<p>Framework consists of two primary steps. First, a self supervised pre training is performed on unlabeled fundus images from the training dataset using contrastive learning to learn visual representations. Once trained, the weights are transferred to a secondary classifier model for supervised fine tuning.</p>
+
+<figure>
+  <img src="img/cl/fig-fundusnet-framework.png" alt="FundusNet framework: a batch of fundus images is data-augmented into two views x_i and x_j, encoded by ResNet50 encoders into representations h_i and h_j, passed through a projection head to z_i and z_j, and trained to maximize pairwise similarity with contrastive loss; NST augmentations use a style transfer network with a VGG encoder, AdaIN, and decoder, alongside regular augmentations; the pretrained weights initialize a classifier network for referable vs non-referable DR.">
+  <figcaption>Framework for Contrastive Learning based pretraining. Figure from Alam et al., "Contrastive Learning-based pretraining improves representation and transferability of diabetic retinopathy classification model."</figcaption>
+</figure>
+
+<p>The representation hi and hj are used as transfer weights for the classifier network after the contrastive learning pipeline is optimized i.e. the contrastive loss has reached its minimum value.</p>
+
+<p>For effective visual representation, authors have adopted a SimCLR framework, a proposed self-supervised approach that relies on contrastive learning. In this method the model learns representations by maximizing the agreement between two different augmented versions of the same data using the contrastive loss. This contrastive learning framework attempts to teach the model to distinguish between similar and dissimilar images.</p>
+
+<p>Consider a random sample of a fundus image, the fundus network takes in each image X, augments it twice, creating two versions of the input image Xi and Xj. These images are encoded into ResNet50 network, generating two encoded representation Hi and Hj, which then is transformed via a non-linear multi-layer perceptron (MLP) projection head, yielding two final representations Zi and Zj, which are utilized to the contrastive loss. Based on the loss on each augmented pair generated from a batch of inputs, the encoder and the projection head representations optimize themselves over time until obtained closer in the representation space.</p>
+
+<p>The batch size of the Contrastive Learning pre-training pipeline demonstrates to have a significant impact on the model pre-training and hence the target model performance.</p>
+
+<h3>Improving representation learning through neural style transfer (NST)</h3>
+
+<p>Augmentation and transformation are key to better representation learning. Authors found that regular image augmentation techniques such as flipping, rotating etc. didn't generate a good representation from the fundus images, CNNs in computer vision tasks are often biased towards texture, in comparison to shape features. Increasing shape bias by randomizing texture environments can be a useful way to improve accuracy and generalizability of a CNN model.</p>
+
+<p>NST manipulates the low-level texture representation of an image but preserves the semantic content. Authors have integrated an NST-based augmentation technique into the CL pipeline, based on convolutional style transfer from non-medical sources; it replaces the style of fundus images (texture, color and contrast) with the randomly selected non-medical images. However, it preserves the semantic contents (global objects, shapes like microaneurysm, vasculature, etc) of the image required for better disease detection. The NST convolutional methodology was adopted from AdaIn style transfer. In CL pre-training, the NST based augmentation was combined with the regular augmentation techniques such as rotation, flipping, resizing, color distortion and gaussian blur.</p>
+
+<h3>Referable vs non-Referable DR Classification</h3>
+
+<p>Using the weights of the pre-trained network as initialization, an end-to-end supervised model for a downstream DR classification task (referable vs non-referable DR). A ResNet50 encoder network with standard cross entropy loss, a batch size of 256, adam optimizer and random augmentation (gaussian blurring, color distortions, resizing, rotations, flipping). Fundus images were resized to 224 x 224 pixels during this stage. This pixel dimension was optimized based on the trade off between image resolution and memory limitation during model training.</p>
+
+<p>When reducing the training data from 100 % to 10 % of the data, the FundusNet model is able to match the performance of the baseline models using only 10 % labeled data when tested on independent data.</p>
+
+<p>CL frameworks learned better representations with a higher batch size yielding better performance. However it implies the need for larger computer resources.</p>
+
+<p>The role of imagenet weights for medical imaging tasks can be limited since it was developed and validated on natural images, and pre-training on in-domain medical images can be more effective in comparison.</p>
+
+<p>NST works well as an augmentation method because the style transfer can introduce a variety of textures when training classifiers using medical images, that can improve classifier performance, and hence it generalizes better when augmented with NST using texture rich artistic images.</p>
+
+<h3>Limitations</h3>
+
+<ol>
+  <li>Optimization of the NST hyperparameters (relatively new technique for augmentation and requires further research for optimization).</li>
+  <li>A larger batch size is required for training of the CL Model. Self-supervised frameworks report the need for larger batch size because CL training requires a large number of negative samples in a batch to calculate contrastive loss effectively.</li>
+</ol>
+
+<h2>2. MLIP: Enhancing Medical Visual Representation with Divergence Encoder and Knowledge-guided Contrastive Learning</h2>
+
+<h3>Abstract</h3>
+
+<p>Existing research overlooks the multi-granularity nature of medical visual representation and lacks suitable contrastive learning techniques to improve the model's generalizability across different granularities leading to under-utilization of image-text information.</p>
+
+<p>To overcome this, the authors propose MLIP, a novel framework leveraging a domain-specific medical knowledge as guiding signals to integrate language information into the visual domain through image-text information. The model includes global contrastive learning with a designed divergence encoder, local token-knowledge-patch alignment contrastive learning and knowledge guided category-level contrastive learning with expert knowledge.</p>
+
+<p>Experimental evaluations show efficacy of the model in transferability for tasks such as image classification, object detection, and semantic segmentation. It highlights the potential of multimodal pre-training in advancing medical representation learning, by surpassing state-of-the-art methods even with limited annotated data.</p>
+
+<h3>Introduction</h3>
+
+<p>The acquisition of large-scale annotated data is time-consuming and expert-demanding, unsupervised learning is a promising alternative. These methods don't rely on annotated data, harnessing medical reports, that provide target supervision for visual representation. By incorporating language information, these models can acquire more universal visual representations that are transferable to downstream tasks and capable of domain transfer.</p>
+
+<p>The three mainstream paradigms in visual representation learning. Masked image modeling follows the mask-and-predict paradigm, randomly masking some patches and predicting missing information. Multimodal contrastive learning conducts embed-and-compare proxy tasks to maximize the mutual information between medical images and reports through image-text contrastive learning. Multi-view self-supervised adopts an augment-and-compare paradigm, where an input image is transformed into two augmented views and compares the two distinct views in the representation space.</p>
+
+<p>The critical pathological features in radiographs are very small in comparison, leading to a lot of irrelevant information, complicating the analysis and reducing the effectiveness of the medical image-text data. Moreover, due to the unique nature of medical image-report, different symptoms might correspond to the same disease, and traditional contrastive learning will mistake the sample that aren't in the same batch as negatives even if they are very close in semantic space. Hence it is important to differentiate between false negatives and negative samples and further reduce the distance between false negatives and positive samples.</p>
+
+<p>The authors have utilized a knowledge guided align-and-compare framework to capture detailed semantic information, matching the details with corresponding medical terms. The authors introduce a knowledge guided medical multimodal pre-trained model, to explore varied levels of details cross model (involving both images and text) in order to improve generalizability of visual representation. The model uses three different methods of image-text contrastive learning to integrate language and vision at different levels of detail and two proxy tasks to establish a match between vision and language. The model utilizes multi-level correspondences (connections at different levels) between the images and reports for enhanced generalized medical visual representation.</p>
+
+<h3>Key Contributions</h3>
+
+<ol>
+  <li>Dynamically updated divergence encoders for data augmentation.</li>
+  <li>Leverage a cross-modal attention based token-knowledge-patch alignment and incorporate contrastive learning.</li>
+  <li>Knowledge-guided prototype clustering contrastive learning approach, which focuses on conducting contrastive learning at a category level rather than individual samples.</li>
+</ol>
+
+<h3>Related Works</h3>
+
+<p><strong>Text-guided Medical Visual Representation Learning:</strong> Unsupervised medical visual representation learning using medical reports can be achieved with two primary methods. The first method involves extracting disease labels from radiology reports using manually designed rules, followed by pre-training image models for downstream tasks. The second method adopts image-text contrastive learning methods to integrate text and vision in an unsupervised manner. Authors propose a divergence encoder that manually updates its parameters based on the similarity between the output features and those of a common encoder. By increasing divergence between the two encoders, authors enhance feature diversity and train the model to discriminate among similar sample effectively.</p>
+
+<p><strong>Knowledge-guided Pre-training:</strong> To enhance the model's knowledge and understanding, numerous vision-and-language pre-training methods have been devised to incorporate domain specific knowledge. These methods are categorized into four schemes: embedding combination, data structure compatibility, knowledge supervision and neural-symbolic methods.</p>
+
+<p>In contrast with the existing works, the authors propose an alignment method that leverages domain specific knowledge as a mediator for aligning texts and images, along with a knowledge-guided prototype clustering contrastive learning. This approach integrates expert domain knowledge derived from the Unified Medical Language System. By incorporating UMLS knowledge into both vision and language modalities, authors approach leverage knowledge as a medium to achieve improved alignment between images and text, leading to effective clustering of image-text pairs.</p>
+
+<h3>Proposed Approach</h3>
+
+<p>The authors present an approach for learning effective medical visual representation using medical reports. Authors have utilized a knowledge-guided align-and-compare scheme, to match and align modalities and compare them in the representation space. The method comprises of four key components:</p>
+
+<ol>
+  <li>Global image-text contrastive learning</li>
+  <li>Local token-knowledge-patch alignment</li>
+  <li>Knowledge-guided category-level contrastive learning</li>
+  <li>Proxy tasks to ensure matching; prevent shortcut exploitation by the network</li>
+</ol>
+
+<h3>Global Image-Text Contrastive Learning</h3>
+
+<p>To pull correct sample closer and push random samples apart in the latent space; contrastive learning by maximizing the mutual information between the vision element X and language element Y:</p>
+
+<figure class="equation">
+  <img src="img/cl/eq-mutual-information.png" alt="Mutual information equation: I(X,Y) equals the double sum over y in Y and x in X of P(x,y) times log of P(x given y) over P(x).">
+</figure>
+
+<p>The maximizing of the mutual information corresponds to the maximizing of the similarity sim (x, y) between x and y, which can be represented as:</p>
+
+<figure class="equation">
+  <img src="img/cl/eq-mi-similarity.png" alt="Equation: I(v,t) is proportional to I(X,Y), which is proportional to sim(x,y), which is proportional to sim(v,t).">
+</figure>
+
+<p>The authors utilize two propagation layers Hv and Ht to map Vi and Ti into a normalized shared features, obtaining Vi* and Ti*, then dot product is performed to model similarity between Vi* and Ti*, for more effective features, we perform self-attention and layer normalization on features.</p>
+
+<figure class="equation">
+  <img src="img/cl/eq-similarity.png" alt="Equations: v_i star equals layer-norm of self-attention of h_v of v_i; t_i star equals layer-norm of self-attention of h_t of t_i; the similarity of v_i star and t_i star equals v_i star times the transpose of t_i star.">
+</figure>
+
+<p>The process is optimized via image text contrastive loss based on InfoNCE loss, which is used to maximize the mutual information between the correct image text pairs in the latent space.</p>
+
+<figure class="equation">
+  <img src="img/cl/eq-infonce.png" alt="InfoNCE image-text losses: L v2t equals minus log of phi(v_i,t_i) over the sum from k=1 to B of phi(v_i,t_k); L t2v equals minus log of phi(v_i,t_i) over the sum from k=1 to B of phi(v_k,t_i).">
+</figure>
+
+<figure class="equation">
+  <img src="img/cl/eq-phi.png" alt="Equation: phi(v_i,t_i) equals the exponential of the similarity of v_i star and t_i star divided by temperature tau_1.">
+</figure>
+
+<p>As an alternative to directly optimizing the mutual information. To increase the number of samples and enhance the feature diversity, we perform a divergence encoder to achieve data augmentation and extend the gap between samples.</p>
+
+<p>Then a image divergence encoder Ov and text divergence encoder Ot, then features that are incrementally differentiated are obtained:</p>
+
+<figure class="equation">
+  <img src="img/cl/eq-augmented-features.png" alt="Equation: augmented visual feature v_i equals the image divergence encoder o_v applied to the randomly transformed image x_i; augmented text feature t_i equals the text divergence encoder o_t applied to y_i.">
+</figure>
+
+<p>Where Xi (rt) is a randomly transformed image. The authors then manually update divergence encoder parameters instead of relying on back propagation.</p>
+
+<figure class="equation">
+  <img src="img/cl/eq-divergence-update.png" alt="Divergence encoder update: theta of o_t equals s_t times theta of f_t plus (1 minus s_t) times theta of o_t; theta of o_v equals s_v times theta of f_v plus (1 minus s_v) times theta of o_v.">
+</figure>
+
+<p>Where St = cosine (Ti, Ti (aug)) and Sv = cosine (Vi, Vi (aug)) and <img src="img/cl/in-theta-params.png" alt="theta of o_t, theta of o_v, theta of f_t, theta of f_v" style="height:1.4em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;"> are the parameters of <img src="img/cl/in-encoders.png" alt="o_t, o_v, f_t, f_v" style="height:1.3em;vertical-align:middle;padding:0.05em 0.2em;border:none;background:#fff;border-radius:2px;"> respectively.</p>
+
+<p>The parameters are updated based on the cosine similarity between the original and augmented features, as the Sv (St) increases (indicating higher similarity), leading to incorporation of more initial parameters into the divergence encoder. These parameters are then utilized to generate more diverse features, these features are added to the initial feature space to enhance diversity.</p>
+
+<p>L(ita) is the average of the four loss values:</p>
+
+<figure class="equation">
+  <img src="img/cl/eq-lita.png" alt="Equation: L_ita equals one over 2N times the sum from i=1 to N of (L v2t of v_i,t_i plus L t2v of v_i,t_i), plus lambda_0 over 2N times the sum from i=1 to N of (L v2a of v_i, augmented t_i plus L avt of augmented v_i, t_i).">
+</figure>
+
+<ol>
+  <li>Visual-Text relationship between the original visual and original text feature</li>
+  <li>Text-Visual relationship between the original text and original visual feature</li>
+  <li>Visual-Augmented Text relationship between the original visual and augmented text feature</li>
+  <li>Augmented Visual-Text relationship between the augmented visual and text</li>
+</ol>
+
+<h2>References</h2>
+
+<ol>
+  <li>Minhaj Nur Alam, Rikiya Yamashita, Vignav Ramesh, Tejas Prabhune, Jennifer I. Lim, RVP Chan, Joelle Hallak, Theodore Leng, Daniel Rubin. "Contrastive Learning-based pretraining improves representation and transferability of diabetic retinopathy classification model."</li>
+  <li>Zhe Li, Laurence T. Yang, Bocheng Ren, Xin Nie, Zhangyang Gao, Cheng Tan, Stan Z. Li. "MLIP: Enhancing Medical Visual Representation with Divergence Encoder and Knowledge-guided Contrastive Learning."</li>
+</ol>

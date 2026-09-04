@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "contrastive-learning-medical-imaging",
+      title: "Contrastive Learning for Medical Imaging",
+      date: "2026-09-03",
+      excerpt: "Notes on two papers using contrastive learning for medical visual representation — CL-based pretraining with neutral style transfer for diabetic retinopathy, and MLIP's divergence encoder with knowledge-guided contrastive learning.",
+      tags: ["AI/ML", "Medical Imaging", "Research"],
+      category: "Technical"
+    },
+    {
       slug: "zero-shot-task-transfer",
       title: "Zero-Shot Task Transfer",
       date: "2026-09-03",
