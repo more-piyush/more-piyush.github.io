@@ -1,0 +1,246 @@
+<p>Notes on the marginal likelihood, Occam's razor, and why the marginal likelihood is not always aligned with model selection and generalization.</p>
+
+<h2>Marginal Likelihood</h2>
+
+<p>Probability that would generate dataset D with model M if randomly sampled from a prior over its parameter p(w).</p>
+
+<blockquote>P(D|M) = &int; P(D|M, w) P(w|M) dw</blockquote>
+
+<p>Marginal likelihood &rarr; likelihood formed by marginalizing parameters w.</p>
+
+<p>Maximizing marginal likelihood &rarr; empirical bayes, type II maximum likelihood estimation.</p>
+
+<p>Decompose marginal likelihood:</p>
+
+<blockquote>P(D|M) = &prod;<sub>i</sub><sup>n</sup> P(D<sub>i</sub> | D<sub>&lt;i</sub>, M)</blockquote>
+
+<p>How good a model is at predicting each data point in sequence given every data point before it.</p>
+
+<h2>Occam Factors</h2>
+
+<p>argument of integral &rarr; posterior P(w|D, M) upto constant of proportionality.</p>
+
+<p>Assume, posterior is relatively concentrated around &wcirc; = argmax<sub>w</sub> P(w|D, M) &rarr; perform rectangular approximation of integral, as height of posterior times width &sigma;<sub>w|D</sub> to find.</p>
+
+<blockquote>P(D|M) &asymp; P(D|&wcirc;, M) &middot; &sigma;(w|D) / &sigma;<sub>w</sub></blockquote>
+
+<p>P(D|&wcirc;, M) &rarr; data fit</p>
+
+<p>&sigma;(w|D) / &sigma;<sub>w</sub> &rarr; occam factor = width of posterior / width of prior</p>
+
+<p>If posterior contracts significantly from prior, there will be large Occam penalty, leading to low LML.</p>
+
+<h2>Occam's Razor</h2>
+
+<p>ML automatically encapsulates notion of Occam's razor.</p>
+
+<p>If model can generate small number of datasets, it will generate those dataset with high probability, since marginal likelihood is normalized probability density. (Simple Model)</p>
+
+<p>By same reasoning, a model which can generate many datasets can't assign significant probability density. (Complex Model)</p>
+
+<p>For given dataset, marginal likelihood will automatically favour most constrainted model thats consistent with data. (Simple Model)</p>
+
+<p><strong>Example:</strong> suppose we have f<sub>1</sub>(x, w) = w<sub>1</sub>x, f<sub>2</sub>(x, w) = &sum;<sub>i=1</sub><sup>100</sup> w<sub>i</sub>x<sup>i</sup> with P(w) = N(0, I).</p>
+
+<p>In both case, data given by straight line with particular slope. Both models have parameter consistent with data, first model more likely to generate dataset.</p>
+
+<h2>Hypothesis Testing</h2>
+
+<p>ML &rarr; a mechanism to select between fixed hypothesis, even if each hypotheses entirely consistent with our observations and prior odds are equal.</p>
+
+<h3>Hypothesis Testing (Detail)</h3>
+
+<p>Hypothesis Testing &rarr; process of evaluating competing claims about data-generation process based on observed sample data.</p>
+
+<p>Does Data support a default assumption? or is evidence strong enough to favor distinctive alternative explanation (HA).</p>
+
+<p>Instead of evaluating model's predictive accuracy after it's been trained, LML in hypothesis testing answers &rarr; what's probability that model generated the training data? It naturally penalizes unwarranted flexibility.</p>
+
+<h3>Evaluating Priors vs Posteriors</h3>
+
+<p>Hypothesis Testing &rarr; evaluates fixed hypothesis (prior) before it combines data. Not interested in how model updates based on data, and then deciding whether update model is correct.</p>
+
+<p>Model Selection &rarr; evaluates posterior (model after it has been updated with data) to determine which provides better generalization.</p>
+
+<p>LML &rarr; pertinent to hypothesis testing, but not generally well aligned with model selection.</p>
+
+<h2>Hyperparameter Learning</h2>
+
+<p>LML &rarr; used to learn hyperparameter of prior to find argmax<sub>&theta;</sub> p(D|&theta;)</p>
+
+<blockquote>p(D|&theta;) = &int; p(D|w) p(w|&theta;) dw</blockquote>
+
+<p>Traditionally, hyperparameters tuned using cross-validation; testing various combinations on withheld subset of data to see which performs best. As number of hyperparameters grow, testing all combinations becomes computationally crippling.</p>
+
+<p>Instead of relying on brute force cross validation the LML can evaluate and adjust hyperparameter using training data alone. LML can be applied where std. cross validation fails.</p>
+
+<p>Instead of optimizing data fit, LML bypasses overly complex fit, choose hyperparameter value that makes model's underlying distribution most likely to have generated training data.</p>
+
+<p><strong>Gaussian Process</strong> &rarr; demonstration of LML Hyperparameter Learning.</p>
+
+<p><strong>Example:</strong> set a hyperparameter like length scale of a mathematical kernel. Std. approach &rArr; select a small value that would perfectly memorize the data &rarr; overfitting.</p>
+
+<h2>Constraint Learning</h2>
+
+<p>To automatically identify most restrictive model structure that still accurately explains observed data.</p>
+
+<p>Learners such as Maximum Likelihood are naturally biased towards more flexible, complex models, the LML provides a consistent estimator for identifying inherent constraints.</p>
+
+<p>Typical learners are never incentivized to select for constraints because a constrained model is special case of more flexible one. A more flexible model can always increase its likelihood by expanding its parameters.</p>
+
+<p>LML counterbalances by automatically selecting the most constrained solution that fits data + collapses to true value of constraint using training data alone, in limit of infinite observations.</p>
+
+<p><strong>Bayesian PCA</strong> &rarr; while marginal likelihood always selects largest possible subspace dimensionality, LML effectively estimates true lower dimensional subspace.</p>
+
+<p><strong>Symmetry Learning</strong> &rarr; automatically learns symmetries such as rotational invariance.</p>
+
+<h2>Pitfalls of Marginal Likelihood</h2>
+
+<p>Conceptual challenges w/ marginal likelihood &rarr; conditional marginal likelihood &rarr; partial remedy.</p>
+
+<p>ML &rarr; probability that prior model generated training data. Different from how likely is posterior, conditioned on training data, to generate withheld points drawn from same distribution.</p>
+
+<p>Although ML &rarr; proxy for generalization, to answer deciding whether model would provide good generalization performance:</p>
+
+<p>If after observing data, prior A &rarr; posterior B and prior C &rarr; posterior D, can be a case when same data are less probable under B than D and D provides better generalization on fresh points from same distribution even if prior A explains the data better than C.</p>
+
+<p>Prior over diffuse set of solutions, will observe significant posterior contractions (as many solutions provide poor likelihood), while marginal likelihood can be poor &rarr; posterior can be perfectly reasonable.</p>
+
+<h3>Understanding Why marginal likelihood will be poor</h3>
+
+<ol>
+  <li>Diffuse Prior</li>
+  <li>Occam Factor Penalty = width of the posterior / width of the prior</li>
+  <li>Product Decomposition of Marginal Likelihood</li>
+</ol>
+
+<p>Product decomposition of ML &rarr; first terms &rarr; low probability density, even if posterior updates quickly to become good description of data.</p>
+
+<p>Different prior, allocates mass significantly to moderate consistent solutions &rarr; giving much higher marginal likelihood but posterior which provides poorer generalization.</p>
+
+<p>ML &rarr; product of sequential predictions. A diffuse prior (broad + many possibilities) &rarr; poor initial predictions because it hasn't narrowed down 'truth' yet &rarr; early low prediction tank total LML score. Even if model learns quickly and becomes extremely accurate after few data points, can't erase penalty paid for first few bad guesses.</p>
+
+<p>Different model &rarr; prior less wrong on average &rarr; allocates more probability to more consistent solutions &rarr; model has higher LML because better initial guesses, even if posterior might not be accurate that first.</p>
+
+<h2>Marginal Likelihood Optimization and Overfitting</h2>
+
+<p>Marginal Likelihood Optimization for hyperparameter Learning &rarr; type-II maximum likelihood or Empirical Bayes &rarr; special case of model selection.</p>
+
+<p>ML &rarr; effective for hyperparameter tuning &rarr; can be prone to underfitting and overfitting.</p>
+
+<h3>Overfitting by ignoring uncertainty</h3>
+
+<p>overfit marginal likelihood &rArr; overfit likelihood. Likelihood for one model can always be seen as marginal likelihood for another model.</p>
+
+<p>Misconception &rarr; bayesian nature of LML automatically protects a model overfitting.</p>
+
+<h3>Search Space Trap</h3>
+
+<p>If your hyperparameter search space includes a prior model is highly concentrated around specific overfit solution, LML will favor it.</p>
+
+<p>Such models appear simple and constrained because it can only generate one specific dataset, resulting in high LML score despite zero predictive power for new data.</p>
+
+<h3>Gaussian Process</h3>
+
+<p>By parameterizing the mean function of the Gaussian Process with neural network (MLP) when they optimized the LML to learn the MLP parameters, the model perfectly fits the training points but provided wildly overconfident and inaccurate predictions for any data outside that region.</p>
+
+<p><strong>Why Occam factor fails?</strong> In specific GP case, the occam factor which usually penalizes complexity &mdash; doesn't account for parameters in mean function leaving model unprotected from conventional overfitting.</p>
+
+<h3>Underfitting in Hyperparameter</h3>
+
+<p>ML &rArr; can lead to underfitting, particularly when dealing with small dataset. supporting a good solution (one that generalizes well), a prior might have assign probability mass to many other solutions that are highly unlikely to generate training data.</p>
+
+<p><strong>Weight Norm:</strong> Imagine a scenario, where best weights for generalization have norm (w*) but there are simpler weights with small norms that provide moderate fits to data.</p>
+
+<p><strong>LML Bias:</strong> LML will favor small norm, mediocre parameter because it doesn't want to pay probability cost of broadening the prior enough to including high performing larger norms.</p>
+
+<p>Pitfalls &rarr; highly dependent on how much data you have.</p>
+
+<p>Small Data &rarr; LML &rarr; most vulnerable, highly influenced by initial prior assumptions and cost of moving away from them.</p>
+
+<p>Large Data &rarr; more data &rarr; observed &rarr; likelihood signal &uarr;. Signal for correct parameter dominates &rarr; underfitting disappears.</p>
+
+<h2>Conditional Marginal Likelihood</h2>
+
+<p>Using product of decomposition of ML, LML can be:</p>
+
+<blockquote>log P(D|M) = &sum;<sub>i=1</sub><sup>n</sup> log P(D<sub>i</sub> | D<sub>&lt;i</sub>, M)</blockquote>
+
+<p>Each term log P(D<sub>i</sub> | D<sub>&lt;i</sub>, M) &rarr; predictive log-likelihood of the data point D<sub>i</sub> under the Bayesian Model Average after observing the data D<sub>&lt;i</sub>.</p>
+
+<p>terms for i close to n are clearly indicative of generalization of model to new test data &rarr; train on available data and test on unseen data. Other hand, small i have equally large effect on the marginal likelihood but may have little to do with generalization.</p>
+
+<h3>Early Data Points (small i)</h3>
+
+<p>first few predictions rely heavily on prior because model hasn't seen much data. If prior is diffuse, early predictions will be poor, drastically dragging down LML score.</p>
+
+<h3>Later Data Points (i close to n)</h3>
+
+<p>By time, model is predicting final data points, it has essentially been trained on previous data; later terms are highly indicative of true generalization.</p>
+
+<p>Inspired by reasoning, &rarr; consider Conditional Log Marginal Likelihood (CLML). CLML &rarr; fixes by simply dropping first few terms of sequence. drop first (m-1) terms of the LML decomposition, to obtain the metric that is more aligned with generalization.</p>
+
+<p>establish a cut-off point, m and only measures the model's predictive performance after it has chance to learn initial m-1 data points.</p>
+
+<blockquote>&sum;<sub>i&ge;m</sub> log P(D<sub>i</sub> | D<sub>&lt;i</sub>, M) = log P(D<sub>&ge;m</sub> | D<sub>&lt;m</sub>)</blockquote>
+
+<p>ignoring cost of learning that occurs before cutoff m, the CLML transforms into a metric more aligned with actual generalization performance.</p>
+
+<h3>Advantages of CLML</h3>
+
+<p><strong>Addresses underfitting:</strong> for small datasets, the std. LML often underfits &rarr; reluctant to pay probability penalty required to move away from prior toward best parameter. CLML evaluates performance based on updated posterior P(w|D<sub>&lt;m</sub>) which is re-centered away from prior - free to select parameters that provide superior generalization.</p>
+
+<p><strong>Easier to estimate:</strong> Std. LML &rarr; difficult to calculate because it requires integrating over prior.</p>
+
+<blockquote>CLML &rarr; &int; P(D<sub>m:n</sub> | w) P(w | D<sub>1:m-1</sub>) dw</blockquote>
+
+<p>Samples from posterior (narrowed down) rather than broad prior, much easier to estimate using Monte Carlo sampling.</p>
+
+<p><strong>Scalability:</strong> compared to traditional cross validation, CLML is more scalable and can be easily used to optimize thousands of hyperparameters simultaneously.</p>
+
+<p>Authors &rarr; rational and applications are different &rarr; motivated by understanding how marginal likelihood can be fundamentally misaligned with generalization. Don't consider prior sensitivity a deficiency of ML, since ML is generating the probability that data is generated from prior. Expect CLML to address issues, except overfitting, since CLML optimization still fitting to withheld points.</p>
+
+<h2>Marginal Likelihood is not aligned with Posterior Model Averaging</h2>
+
+<p>Bayesian Inference &rarr; performance of Bayesian Model Average &rarr; integrate out parameter according to posterior, to form predictive posterior distribution.</p>
+
+<blockquote>P(d*|D, M) = &int; P(d*|w) P(w|D) dw</blockquote>
+
+<p>d* &rarr; test datapoint.</p>
+
+<p>Instead of using single setting of parameters combine the prediction of models corresponding to every setting of parameters weighting these models by posterior probabilities.</p>
+
+<h3>Misconception</h3>
+
+<p>Because marginal likelihood (LML) integrates over all parameters, McKay (1992d) argues that it is a good measure of 'plausibility of entire posterior ensemble'.</p>
+
+<h3>Decomposing LML using the evidence lower bound (ELBO)</h3>
+
+<pre><code>log P(D|M) = log P(D) = &int;<sub>w</sub> log[P(D)] P(w|D) dw
+           = &int;<sub>w</sub> log[ P(w, D) / P(w|D) ] P(w|D) dw
+           = &int;<sub>w</sub> log[ P(D|w) P(w) / P(w|D) ] P(w|D) dw
+           = &int;<sub>w</sub> log[P(D|w)] P(w|D) dw
+             &minus; &int;<sub>w</sub> log[ P(w|D) / P(w) ] P(w|D) dw
+           = E<sub>w~P(w|D)</sub>[ log P(D|w) ] &minus; KL( P(w|D) &Vert; P(w) )
+           = expected sample likelihood &minus; Occam Factor</code></pre>
+
+<h2>Occam Factor Penalty</h2>
+
+<p>Occam Factor &rarr; ratio of width of posterior to width of prior. model requires wide prior to include correct solution but data eventually dictates a narrow posterior &rarr; pays massive penalty for uncertainty at start.</p>
+
+<p>LML &rarr; may prefer &rarr; mediocre model with narrow prior thats less wrong rather than superior model stretched wide to find truth.</p>
+
+<p>LML suffers &rArr; assign mass parameter that are unlikely to generate the data in order to reach parameter that are likely to generate data.</p>
+
+<p>ML &rarr; integral of likelihood times prior. prior must integrate to 1, any probability mass &rarr; finite source. to reach parameters far away (weight with large norm) have to broaden prior distribution to give more weight.</p>
+
+<p>broaden prior to include high performing but distant parameters &rArr; forced to assign probability mass to a vast volume of other parameters in between. Intermediate parameters &rarr; completely inconsistent w/ data and provide a very poor fit.</p>
+
+<p>total probability mass is fixed &rarr; spreading across empty space reduces probability density assigned to actual good parameters.</p>
+
+<h2>References</h2>
+
+<ol>
+  <li>Sanae Lotfi, Pavel Izmailov, Gregory Benton, Micah Goldblum, Andrew Gordon Wilson. "Bayesian Model Selection, the Marginal Likelihood, and Generalization." International Conference on Machine Learning (ICML), 2022.</li>
+  <li>David J. C. MacKay. "Bayesian Interpolation." Neural Computation, 1992. (referenced in the notes as McKay, 1992d)</li>
+</ol>

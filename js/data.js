@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "marginal-likelihood-and-model-selection",
+      title: "Marginal Likelihood and Model Selection",
+      date: "2026-09-04",
+      excerpt: "Notes on the marginal likelihood, Occam's razor, and why the marginal likelihood is not always aligned with model selection and generalization — including hyperparameter learning, its pitfalls, and the conditional marginal likelihood.",
+      tags: ["AI/ML", "Bayesian", "Research"],
+      category: "Technical"
+    },
+    {
       slug: "contrastive-learning-medical-imaging",
       title: "Contrastive Learning for Medical Imaging",
       date: "2026-09-03",
