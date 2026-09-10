@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "real-time-audio-playback-dsp",
+      title: "Real-Time Audio Playback in Python",
+      date: "2026-09-10",
+      excerpt: "Two real-time audio programs built with Python, PyAudio and TkInter — adjusting playback speed via interpolation/sampling with anti-aliasing, and selecting a looping playback clip.",
+      tags: ["DSP", "Python", "Audio"],
+      category: "Technical"
+    },
+    {
       slug: "probability-and-stochastic-processes",
       title: "Probability and Stochastic Processes",
       date: "2026-09-04",

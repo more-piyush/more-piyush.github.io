@@ -1,0 +1,173 @@
+<p>Two real-time audio programs built with Python, PyAudio and TkInter for the DSP Lab midterm &mdash; one for adjusting playback speed via interpolation/sampling, and one for selecting a playback clip.</p>
+
+<h2>Question 1: Playback speed via interpolation/sampling</h2>
+
+<blockquote>Use Python, PyAudio and TkInter to create an interactive graphical user interface (GUI) for real-time adjustment of playback speed. The method should write the output signal in blocks to the output audio stream. The output signal block length is fixed. The input signal will be from an audio file, not a microphone. In order to change the playback speed, the method should read the signal from the audio file in blocks of varying duration (longer or shorter than the output signal block length). The output signal will be at a lower or higher frequency than the input signal; your program should not correct for that. Your method should avoid aliasing artifacts. For interpolation/sampling, your method can use functions available is Numpy or Scipy. The user should be able to vary the playback speed &alpha; in real time by adjusting a slider. You can use the range 0.5 &lt; &alpha; &lt; 2 for the slider. The input signal should be read from a file with continuous looping until the user quits the program.</blockquote>
+
+<h3>Reading and normalizing the audio</h3>
+
+<p>Use scipy.io.wavfile to read the audio file as it loads directly into an numpy array, allowing index-based approach, while wave module require iterative seek and read operations. Wave module returns audio data as raw bytes, making it difficult to carry out filtering or interpolation.</p>
+
+<p>Audio files store sound waves as numbers (wavfile &rarr; signed integers) but algorithms expect them to be floating point decimals strictly between &minus;1 and 1. Thus, normalization is performed for np.int16 by dividing by 2<sup>15</sup> and np.int32 by dividing by 2<sup>31</sup>, preserving the range of audio data.</p>
+
+<p>In case of stereo audio file, data.ndim &gt; 1 will produce 2D Array, with left channel and right channel. If audio is 2D, calculate avg. across two channel into mono channel.</p>
+
+<p class="code-file">Playback_Speed_1.py</p>
+<pre><code>RATE, data = scipy_wav.read(wavfile)
+
+if data.dtype == np.int16:
+    data = data.astype(np.float32) / (2**15)
+elif data.dtype == np.int32:
+    data = data.astype(np.float32) / (2**31)
+
+if data.ndim &gt; 1:
+    data = data.mean(axis=1)
+
+audio_data = data
+LEN = len(audio_data)</code></pre>
+
+<h3>The callback: stretching and shrinking the blocks</h3>
+
+<p>In the callback Function, alphac depicts position of slider, fetched using alpha.get(), to fit the audio block of samples at speed &alpha;<sub>c</sub>, it needs to stretch or shrink the audio frames. Ex. speed &alpha;<sub>c</sub> = 2.0, 1024 &times; 2 = 2048 of original file in output sample of 1024.</p>
+
+<p>To ensure continuous looping, use modulo operator to rollback to start of audiofile if start + samples is greater than audio blocklength.</p>
+
+<p class="code-file">Playback_Speed_1.py</p>
+<pre><code>def callback(data, framecount, time, status):
+
+    global pos, alphal , zi, audio_data, LEN, alpha
+
+    alphac = alpha.get()
+
+    start = int(np.floor(pos))
+    end = int(pos + framecount * alphac)
+
+    samples = (end - start) + 2
+
+    index = np.arange(start, start + samples) % LEN
+    array = audio_data[index]</code></pre>
+
+<h3>Avoiding aliasing &mdash; the Butterworth low-pass</h3>
+
+<p>when &alpha;<sub>c</sub> &gt; 1, audio is processed faster than sampling rate, imply audio is downsampled, which shrinks the frequency spectrum resulting in folding of high frequencies, forming distortions known as aliasing, whereas as in case of &alpha;<sub>c</sub> &lt; 1, spectrum stretches.</p>
+
+<p>A butterworth filter is used as a low pass filter to cut of the high frequencies before they cause distortions and ensures only frequencies below Nyquist limit are allowed to pass.</p>
+
+<p>signal.lfilter_zi(&hellip;) is used to prevent loud pop when filter changes based on the first sample.</p>
+
+<p class="code-file">Playback_Speed_1.py</p>
+<pre><code>if alphac &gt; 1.0:
+    cutoff = min(0.97, 1.0 / alphac)
+    b, a = signal.butter(2, cutoff)
+
+    zi = signal.lfilter_zi(b, a) * array[0]
+
+    filtarray, zi = signal.lfilter(b, a, array, zi=zi)
+    alphal = alphac
+else:
+    filtarray = array
+    alphal = alphac
+    zi = None</code></pre>
+
+<h3>Interpolation</h3>
+
+<p>In the interpolation, first calculate the exact position of audioframes based on playback speed, then we identify relative position of audioframe. as the audio data exists only on whole number indices, we use np.clip to identify the range of index.</p>
+
+<p>Then, perform weighted average of two consecutive samples to smooth out wave and prevent distortion.</p>
+
+<p class="code-file">Playback_Speed_1.py</p>
+<pre><code>indexoverall = pos + np.arange(framecount) * alphac
+indexfit = indexoverall - start
+
+indexfitlow = np.floor(indexfit).astype(int)
+frac = indexfit - indexfitlow
+i = np.clip(indexfitlow, 0, len(filtarray) - 2)
+
+arrayout = filtarray[i] * (1.0 - frac) + \
+            filtarray[i + 1] * frac
+
+pos = end % LEN</code></pre>
+
+<h3>The slider</h3>
+
+<p>we set the slider range from 0.5 to 2, with default speed 1.</p>
+
+<p class="code-file">Playback_Speed_1.py</p>
+<pre><code>alpha = tk.DoubleVar(value=1.0)
+slider = tk.Scale(
+    root, from_=0.5, to=2.0, resolution=0.05,
+    orient=tk.HORIZONTAL, variable=alpha, length=300
+)
+slider.pack()</code></pre>
+
+<h2>Question 2: Playback clip selection</h2>
+
+<blockquote>Use Python, PyAudio and TkInter to create an interactive graphical user interface (GUI) for real-time adjustment of the start time and the duration of a clip of an audio file. The input signal will be from an audio file, not a microphone. The user should be able to adjust two sliders to control the start time and the duration (or stop time) of the clip. The clip should play in a continuous loop until the user quits the program. The user should be able to adjust the sliders while audio is playing.</blockquote>
+
+<h3>Selecting the clip</h3>
+
+<p>We fetch the start time and duration from the slider using startslider.get() and durationslider.get(). In order to ensure start time + duration don't exceed max duration we run a loop, modify the duration with duration &minus; start time.</p>
+
+<p>Then, converting audio data into bytes of frames.</p>
+
+<p class="code-file">Playback_Clip.py</p>
+<pre><code>def playback(event=None):
+    global start, end, current
+    st = startslider.get()
+    dur = durationslider.get()
+
+    if st + dur &gt; maxdur:
+        dur = maxdur - st
+        durationslider.set(dur)
+
+    newstart = int(st * RATE) * frame
+    newend = int((st + dur) * RATE) * frame
+
+    start = newstart
+    end = newend
+
+    if current &lt; start or current &gt;= end:
+        current = start</code></pre>
+
+<h3>The looping callback</h3>
+
+<p>Now, in order to ensure continuous looping, we use a while loop, to begin from current start state, traverse till the end, reset current to start, play the remaining frames.</p>
+
+<p>Callback Function defines the framecounts, which is used to define number of frame to read. read-amt defines the amount to be read, which is added to out var. Then, through if loop, we verify if current has exceeded 'end' if yes, we rollback to the start of loop.</p>
+
+<p>As soon as len(out) = read the while loop breaks.</p>
+
+<p class="code-file">Playback_Clip.py</p>
+<pre><code>def callback(indata, framecount, timeinfo, status):
+
+    global current
+    read = framecount * frame
+    out = b''
+
+    while len(out) &lt; read:
+
+        read_amt = min(read - len(out), end - current)
+
+        out += audiodata[current : current + read_amt]
+        current += read_amt
+
+        if current &gt;= end:
+            current = start
+
+    return (out, pyaudio.paContinue)</code></pre>
+
+<h3>The sliders</h3>
+
+<p>We define two sliders, one for start time and other for duration with range 0 to maxdur and 0.1 to max of dur. respectively.</p>
+
+<p class="code-file">Playback_Clip.py</p>
+<pre><code>tk.Label(root, text="Start Time").pack()
+startslider = tk.Scale(root, from_=0, to=maxdur, resolution=0.05,
+                         orient=tk.HORIZONTAL, length=300, command=playback)
+startslider.pack()
+
+tk.Label(root, text="Duration").pack()
+durationslider = tk.Scale(root, from_=0.1, to=maxdur, resolution=0.05,
+                           orient=tk.HORIZONTAL, length=300, command=playback)
+durationslider.set(maxdur)
+durationslider.pack()</code></pre>
