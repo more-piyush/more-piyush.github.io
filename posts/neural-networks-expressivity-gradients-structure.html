@@ -1,0 +1,154 @@
+<p>Working through the expressivity of neural networks, the gradient of the softmax / cross-entropy loss, and an experiment on how nonlinearity and initialization shape what a network can learn on FashionMNIST.</p>
+
+<h2>Question 1: Expressivity of neural networks</h2>
+
+<blockquote>Recall that the functional form for a single neuron is given by y = &sigma;(&langle;w, x&rangle; + b), where x is the input and y is the output. Assume that x and y are 1-dimensional and &sigma; is the step activation: &sigma;(u) = 1 for u &gt; 0 and 0 otherwise. We will use multiple layers of such neurons to approximate pretty much any function f.</blockquote>
+
+<h3>(a) Realizing a box function</h3>
+
+<blockquote>A box function with height h and width &delta; is the function f(x) = h for 0 &lt; x &lt; &delta; and 0 otherwise. Show that a simple neural network with 2 hidden neurons with step activations can realize this function.</blockquote>
+
+<p>single neuron y = &sigma;(&langle;w, x&rangle; + b), x &rarr; input; y &rarr; output. &sigma; &rarr; step activation &sigma;(u) = 1, u &gt; 0 and 0 otherwise.</p>
+
+<p>Box function with height h and width &delta;: f(x) = h if 0 &lt; x &lt; &delta;, 0 otherwise. The box function:</p>
+
+<blockquote>f(x) = h&sigma;(x) &minus; h(&sigma;(x &minus; &delta;))</blockquote>
+
+<p>hidden layer contains two neurons &rarr; two activation function needed.</p>
+
+<blockquote>h<sub>1</sub>(x) = &sigma;(w<sub>1</sub>x + b<sub>1</sub>) = &sigma;(x) &rArr; w<sub>1</sub> = 1, b<sub>1</sub> = 0<br>
+h<sub>2</sub>(x) = &sigma;(w<sub>2</sub>x + b<sub>2</sub>) = &sigma;(x &minus; &delta;) &rArr; w<sub>2</sub> = 1, b<sub>2</sub> = &minus;&delta;<br>
+y = v<sub>1</sub>h<sub>1</sub>(x) + v<sub>2</sub>h<sub>2</sub>(x) = h&sigma;(x) &minus; h&sigma;(x &minus; &delta;) &rArr; v<sub>1</sub> = h, v<sub>2</sub> = &minus;h</blockquote>
+
+<figure>
+  <img src="img/deeplearning/fig-box-network.png" alt="Hand-drawn network: input x connects with w1=1 to neuron h1 (step activation, bias b1=0) and with w2=1 to neuron h2 (step activation, bias b2=0-delta); h1 connects with v1=h and h2 with v2=-h to a summation node producing output y.">
+  <figcaption>The two-neuron network realizing the box function.</figcaption>
+</figure>
+
+<p>for x &le; 0, h<sub>1</sub>(x) = 0, h<sub>2</sub>(x) = 0 &rArr; y = h(0) &minus; h(0) = 0. for 0 &lt; x &le; &delta;, h<sub>1</sub>(x) = 1, h<sub>2</sub>(x) = 0 &rArr; y = h(1) &minus; h(0) = h. for x &gt; &delta;, h<sub>1</sub>(x) = 1, h<sub>2</sub>(x) = 1 &rArr; y = h(1) &minus; h(1) = 0.</p>
+
+<p><strong>Assumption made in reasoning:</strong> &delta; is positive and h is non-zero. output neuron &rarr; linear combination, no activation function.</p>
+
+<h3>(b) Approximating an arbitrary function</h3>
+
+<blockquote>Now suppose that f is any arbitrary, smooth, bounded function defined over an interval [&minus;B, B]. Use part a to show that this function can be closely approximated by a neural network with a hidden layer of neurons.</blockquote>
+
+<p>f &rarr; arbitrary, smooth bounded function defined over an interval [&minus;B, B] &rArr; uniform, continuous.</p>
+
+<p>Dividing the domain [&minus;B, B] into small intervals of uniform width &Delta;x = 2B/N with endpoints x<sub>k</sub> = &minus;B + k&Delta;x.</p>
+
+<p>Lets define a function g<sub>A</sub>(x) s.t g<sub>A</sub>(x) = 1 x &isin; A, 0 otherwise. g(x<sub>k</sub> &lt; x &lt; x<sub>k</sub> + &Delta;x) equals 1 when x lies in subinterval, otherwise 0. Thus,</p>
+
+<blockquote>f(x) &asymp; &sum;<sub>k=0</sub><sup>N&minus;1</sup> f(x<sub>k</sub>) &middot; g(x<sub>k</sub> &lt; x &lt; x<sub>k</sub> + &Delta;x)</blockquote>
+
+<p>Now, each slice g(x) is a box function with height f(x<sub>k</sub>). From (a), each box function is formed by two neurons with step activation function b<sub>k</sub>(x) = &sigma;(x &minus; x<sub>k</sub>) &minus; &sigma;(x &minus; (x<sub>k</sub> + &Delta;x)). Now, for N such box functions in single hidden layer:</p>
+
+<blockquote>f(x) = &sum;<sub>k=0</sub><sup>N&minus;1</sup> f(x<sub>k</sub>)[&sigma;(x &minus; x<sub>k</sub>) &minus; &sigma;(x &minus; x<sub>k</sub> &minus; &Delta;x)]</blockquote>
+
+<p>As N &rarr; &infin;, &Delta;x &rarr; 0, the approximation &rarr; f(x).</p>
+
+<h3>(c) Extension to d-dimensional inputs</h3>
+
+<blockquote>Do you think the argument in part b can be extended to the case of d-dimensional inputs? If yes, comment on potential practical issues (for example, exponential growth in network size).</blockquote>
+
+<p>Yes, argument extends to d-dimensional inputs (x &isin; &Ropf;<sup>d</sup>). the domain [&minus;B, B]<sup>d</sup> can be partioned into small d-dimensional structures of side length &delta;. The function g can be formed using bounding-2d faces (planes) and then forming 3d slices across the bounding faces, and then approximating the function as weighted sum of slices.</p>
+
+<p><strong>Limitations &mdash; Exponential Growth in Network size:</strong> Partitioning of d-dimensional domain [&minus;B, B]<sup>d</sup> into grid with k = 2B/&delta; subdivisions per dimension. N = k<sup>d</sup> = [2B/&delta;]<sup>d</sup>. <strong>Computational Complexity:</strong> As dimension d grows, the required number of neurons and parameters grow exponentially.</p>
+
+<h2>Question 2: Getting a feel of gradient computation</h2>
+
+<blockquote>Suppose that z is a vector with n elements. We would like to compute the gradient of the vector y = softmax(z).</blockquote>
+
+<h3>(a) The softmax Jacobian</h3>
+
+<p>Softmax Function y<sub>i</sub> = e<sup>z<sub>i</sub></sup> / &sum;<sub>k=1</sub><sup>n</sup> e<sup>z<sub>k</sub></sup>. maps n-dimensional vector z = [z<sub>1</sub>, z<sub>2</sub>, z<sub>3</sub> &hellip; z<sub>n</sub>]<sup>T</sup> to a probability distribution vector y = [y<sub>1</sub>, y<sub>2</sub>, &hellip;, y<sub>n</sub>]<sup>T</sup> for component i &isin; {1, 2, &hellip; n}.</p>
+
+<p>Jacobian Matrix J<sub>ij</sub> = &part;y<sub>i</sub>/&part;z<sub>j</sub>. Using the quotient rule d(u/v) = (u&prime;v &minus; uv&prime;)/v<sup>2</sup>:</p>
+
+<blockquote>&part;y<sub>i</sub>/&part;z<sub>j</sub> = [ &part;/&part;z<sub>j</sub>(e<sup>z<sub>i</sub></sup>) &sum;<sub>k=1</sub><sup>n</sup> e<sup>z<sub>k</sub></sup> &minus; e<sup>z<sub>i</sub></sup> &part;/&part;z<sub>j</sub>(&sum;<sub>k=1</sub><sup>n</sup> e<sup>z<sub>k</sub></sup>) ] / (&sum;<sub>k=1</sub><sup>n</sup> e<sup>z<sub>k</sub></sup>)<sup>2</sup></blockquote>
+
+<p>partial derivatives: &part;e<sup>z<sub>i</sub></sup>/&part;z<sub>j</sub> = &delta;<sub>ij</sub> e<sup>z<sub>i</sub></sup>; &part;/&part;z<sub>j</sub>(&sum;<sub>k=1</sub><sup>n</sup> e<sup>z<sub>k</sub></sup>) = e<sup>z<sub>j</sub></sup>. Substituting:</p>
+
+<blockquote>J<sub>ij</sub> = [&delta;<sub>ij</sub> e<sup>z<sub>i</sub></sup> &sum;<sub>k=1</sub><sup>n</sup> e<sup>z<sub>k</sub></sup> &minus; e<sup>z<sub>i</sub></sup>e<sup>z<sub>j</sub></sup>] / (&sum;<sub>k=1</sub><sup>n</sup> e<sup>z<sub>k</sub></sup>)<sup>2</sup> = &delta;<sub>ij</sub> y<sub>i</sub> &minus; y<sub>i</sub>y<sub>j</sub><br>
+J<sub>ij</sub> = y<sub>i</sub>(&delta;<sub>ij</sub> &minus; y<sub>j</sub>)</blockquote>
+
+<h3>(b) Gradient of the cross-entropy loss</h3>
+
+<p>cross-entropy loss for target-probability distribution t = [t<sub>1</sub>, t<sub>2</sub>, &hellip;]<sup>T</sup>: L = &minus;&sum;<sub>i=1</sub><sup>n</sup> t<sub>i</sub> ln y<sub>i</sub>. using multivariate chain rule, the derivative of the loss L wrt input z<sub>j</sub>:</p>
+
+<blockquote>&part;L/&part;z<sub>j</sub> = &sum;<sub>i=1</sub><sup>n</sup> (&part;L/&part;y<sub>i</sub>)(&part;y<sub>i</sub>/&part;z<sub>j</sub>)</blockquote>
+
+<p>substituting &part;L/&part;y<sub>i</sub> = &minus;t<sub>i</sub>/y<sub>i</sub> and jacobian &part;y<sub>i</sub>/&part;z<sub>j</sub> = y<sub>i</sub>(&delta;<sub>ij</sub> &minus; y<sub>j</sub>):</p>
+
+<blockquote>&part;L/&part;z<sub>j</sub> = &minus;&sum;<sub>i=1</sub><sup>n</sup> (t<sub>i</sub>/y<sub>i</sub>) y<sub>i</sub>(&delta;<sub>ij</sub> &minus; y<sub>j</sub>) = &minus;&sum;<sub>i=1</sub><sup>n</sup> t<sub>i</sub>(&delta;<sub>ij</sub> &minus; y<sub>j</sub>) = &minus;&sum;<sub>i=1</sub><sup>n</sup> t<sub>i</sub>&delta;<sub>ij</sub> + &sum;<sub>i=1</sub><sup>n</sup> t<sub>i</sub>y<sub>j</sub> = &minus;t<sub>j</sub> + y<sub>j</sub>&sum;<sub>i=1</sub><sup>n</sup> t<sub>i</sub></blockquote>
+
+<p>for a probability distribution, &sum;<sub>i=1</sub><sup>n</sup> t<sub>i</sub> = 1, therefore &part;L/&part;z<sub>j</sub> = &minus;t<sub>j</sub> + y<sub>j</sub>, i.e. &nabla;<sub>z</sub>L = y &minus; t.</p>
+
+<p><strong>Intuitive Explanation:</strong> Gradient for z<sub>j</sub> &rarr; difference between the predicted probability y<sub>j</sub> and ground truth probability t<sub>j</sub>. If model predicts a higher probability than target (y<sub>j</sub> &gt; t<sub>j</sub>) the gradient is positive (&part;L/&part;z<sub>j</sub> &gt; 0). In gradient descent, updating z<sub>j</sub> &larr; z<sub>j</sub> &minus; &eta; &part;L/&part;z<sub>j</sub> reduces z<sub>j</sub>, effectively decreasing y<sub>j</sub>. If model underpredicts (y<sub>j</sub> &lt; t<sub>j</sub>), the gradient is negative (&part;L/&part;z<sub>j</sub> &lt; 0), causing gradient descent to increase z<sub>j</sub>, increasing y<sub>j</sub>. For y<sub>j</sub> = t<sub>j</sub>, predictions match target posibilities, gradient vanishes &nabla;<sub>z</sub>L = 0, no update.</p>
+
+<h2>Question 3: The structure of neural networks</h2>
+
+<blockquote>Use the FashionMNIST dataset and a dense neural network with three hidden layers of sizes 256,128,64. (a) A normal network: ReLU activations and standard random initialization; (b) a linear neural network: exactly the same architecture, but remove all ReLU activations; and (c) zero-init: the first ReLU network, but initialize every weight and bias to zero. Keep the dataset, optimizer, learning rate, batch size, and number of training epochs the same across all three experiments.</blockquote>
+
+<p>Three experiments, same architecture (784 &rarr; 256 &rarr; 128 &rarr; 64 &rarr; 10), same optimizer/lr/batch size/epochs: (a) Normal &mdash; ReLU activations, standard random initialization; (b) Linear &mdash; same architecture, ReLU activations removed (identity between layers); (c) Zero-init &mdash; same as (a) but every weight and bias initialized to zero.</p>
+
+<p class="code-file">fashionmnist_relu_vs_linear_vs_zeroinit.ipynb</p>
+<pre><code>class MLP(nn.Module):
+    def __init__(self, hidden_sizes=(256, 128, 64), use_relu=True, zero_init=False):
+        super().__init__()
+        sizes = [28 * 28] + list(hidden_sizes) + [10]
+        layers = []
+        for i in range(len(sizes) - 1):
+            layers.append(nn.Linear(sizes[i], sizes[i + 1]))
+            is_last = (i == len(sizes) - 2)
+            if use_relu and not is_last:
+                layers.append(nn.ReLU())
+        self.net = nn.Sequential(*layers)
+        if zero_init:
+            self._zero_init()
+
+    def _zero_init(self):
+        for m in self.net:
+            if isinstance(m, nn.Linear):
+                nn.init.zeros_(m.weight)
+                nn.init.zeros_(m.bias)</code></pre>
+
+<p class="code-file">fashionmnist_relu_vs_linear_vs_zeroinit.ipynb</p>
+<pre><code>set_seed(42)
+model_normal = MLP(use_relu=True, zero_init=False)
+history_normal = train_model(model_normal, train_loader, test_loader, epochs=EPOCHS, lr=LR, label='normal (ReLU)')
+
+set_seed(42)
+model_linear = MLP(use_relu=False, zero_init=False)
+history_linear = train_model(model_linear, train_loader, test_loader, epochs=EPOCHS, lr=LR, label='linear (no ReLU)')
+
+set_seed(42)
+model_zero = MLP(use_relu=True, zero_init=True)
+history_zero = train_model(model_zero, train_loader, test_loader, epochs=EPOCHS, lr=LR, label='zero-init (ReLU)')</code></pre>
+
+<h3>Predictions (before running)</h3>
+
+<p>Before running the experiments, predictions for all the three networks.</p>
+
+<ul>
+  <li><strong>ReLU</strong> &rarr; expect to train successfully. train and test loss should drop significantly and achieve final good accuracy. ReLU lets network learn non-linear features.</li>
+  <li><strong>Linear</strong> &rarr; expect to train but achieve an observable worse loss than non-linear network.</li>
+  <li><strong>zero init</strong> &rarr; expect to fail to learn, as each neuron start identical it will face the symmetry problem, compute same output, same gradient, same update remains identical throughout training.</li>
+</ul>
+
+<h3>Results</h3>
+
+<figure>
+  <img src="img/deeplearning/fig-loss-curves.png" alt="Loss curve plot: Normal (ReLU) train and test loss drop and stay lowest around 0.2-0.35; Linear train and test loss sit higher around 0.4-0.5; Zero-init train and test loss are a flat horizontal line near 2.3 for all epochs.">
+  <figcaption>FashionMNIST: Training and Test Loss &mdash; Normal vs Linear vs Zero-Init.</figcaption>
+</figure>
+
+<h3>Interpretation</h3>
+
+<p>The prediction are as expected, but what surprised me was how the linear unit still trains and improves its learning but just worse loss than the ReLU network and the zero Initialization network doesn't just fail but gives a Flat line with exact same loss in each iteration.</p>
+
+<p><strong>Why doesn't stacking more linear layers give a linear network ReLU expressive power?</strong> If layer 1 computes W<sub>1</sub>x + b<sub>1</sub> and layer 2 computes W<sub>2</sub>(&middot;) + b<sub>2</sub> then together they compute W<sub>2</sub>W<sub>1</sub>x + (W<sub>2</sub>b<sub>1</sub> + b<sub>2</sub>). So stacking linear layer ultimately collapse into single linear layer.</p>
+
+<p><strong>Explaining the behaviour of zero Initialized network:</strong> when every weight and bias is 0 (even constant), every neuron computes the same outputs, so network's prediction is same for each input so their probability is same. During backpropagation, depends on neuron activation, which is 0, so the gradient remain same (0), thus network get same update (0), so the network maintains a symmetrical behaviour throughout training, resulting in a Flat line stuck permanently.</p>
+
+<p><strong>Why do non-linearity and initialization matter?</strong> Non-Linearity overcomes the problem of linear network collapsing into one linear function, and allowing the extra layers to learn more from data and achieve better accuracy and random initialization ensures that each neuron starts different and learns different features.</p>

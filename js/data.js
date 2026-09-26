@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "neural-networks-expressivity-gradients-structure",
+      title: "Expressivity, Gradients, and the Structure of Neural Networks",
+      date: "2026-09-25",
+      excerpt: "Working through the expressivity of neural networks, the softmax / cross-entropy gradient, and a FashionMNIST experiment on how nonlinearity and initialization shape what a network can learn.",
+      tags: ["Deep Learning", "Neural Networks", "PyTorch"],
+      category: "Technical"
+    },
+    {
       slug: "real-time-audio-playback-dsp",
       title: "Real-Time Audio Playback in Python",
       date: "2026-09-10",
