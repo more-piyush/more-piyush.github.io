@@ -1,0 +1,67 @@
+<p>Driving a second-order recursive filter with a unit impulse and sending the output to PyAudio as 16-bit samples &mdash; what happens when the gain is set too high, and how to choose a safe gain from the impulse response.</p>
+
+<p class="code-file">D3Q4.py</p>
+<pre><code>Fs = 8000
+T = 1
+N = T*Fs
+
+
+a1 = -1.9
+a2 = 0.998
+
+y1 = 0.0
+y2 = 0.0
+gain = 100000.0</code></pre>
+
+<p class="code-file">D3Q4.py</p>
+<pre><code>for n in range(0, int(N)):
+
+    if n == 0:
+        x0 = 1.0
+    else:
+        x0 = 0.0
+
+    y0 = x0 - a1 * y1 - a2 * y2
+
+    y2 = y1
+    y1 = y0</code></pre>
+
+<h2>Question 4: Overflow and clipping</h2>
+
+<p>Setting gain to high value causes output value to exceed the range of 16-bit signed integer (2<sup>15</sup> &minus; 1). When struct.pack('h', &hellip;) receives value outside range, It raises runtime error because value cannot fit into 2 bytes.</p>
+
+<p>This runtime overflow error is avoided by clipping the signal using if statement to check if value exceeds the minimum or maximum bounds and forcing it within limits.</p>
+
+<p class="code-file">D3Q4.py</p>
+<pre><code>    output_value = gain * y0
+
+    if output_value &gt; 32767:
+        output_value = 32767
+    elif output_value &lt; -32768:
+        output_value = -32768
+
+
+    output_string = struct.pack('h', int(output_value))
+    stream.write(output_string)</code></pre>
+
+<h3>Effect on the sound?</h3>
+
+<p>Clippings squares off peaks of waveforms, producing harmonic distortions, which make sounds sharper, buzzy compared to original tone.</p>
+
+<figure>
+  <img src="img/dsp-clipping/fig-clipping-waveform.png" alt="First 20 ms of output: the gain 10,000 signal (blue) is a smooth sinusoid between about -1 and 1, while the gain 1,000,000 signal (red) is squared off with flat peaks at +1.1 and -1.1, showing hard clipping.">
+  <figcaption>Unclipped (blue) vs. clipped (red) output over the first 20 ms.</figcaption>
+</figure>
+
+<h2>Question 5: Choosing the gain from the impulse response</h2>
+
+<blockquote>Impulse response &nbsp; h(n) = r<sup>n</sup> cos(&omega;<sub>1</sub>n) u(n)</blockquote>
+
+<blockquote>Z Transform &nbsp; H(z) = (1 &minus; r cos(&omega;<sub>1</sub>) z<sup>&minus;1</sup>) / (1 &minus; 2r cos(&omega;<sub>1</sub>) z<sup>&minus;1</sup> + r<sup>2</sup>z<sup>&minus;2</sup>)</blockquote>
+
+<p>comparing with,</p>
+
+<blockquote>H(z) = (b<sub>0</sub> + b<sub>1</sub>z<sup>&minus;1</sup> + b<sub>2</sub>z<sup>&minus;2</sup>) / (1 + a<sub>1</sub>z<sup>&minus;1</sup> + a<sub>2</sub>z<sup>&minus;2</sup>)<br>
+b<sub>0</sub> = 1, &nbsp; b<sub>1</sub> = &minus;r cos(&omega;<sub>1</sub>), &nbsp; b<sub>2</sub> = 0</blockquote>
+
+<p>Since |h(n)| &le; 1 for all n, the maximum value occurs at n = 0 where h(0) = 1. To ensure signal doesn't exceed 2<sup>15</sup> &minus; 1, using if condition, gain is set to 32767.</p>

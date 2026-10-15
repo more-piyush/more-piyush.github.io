@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "dsp-gain-clipping-overflow",
+      title: "Gain, Clipping, and Overflow in a Recursive Filter",
+      date: "2026-10-15",
+      excerpt: "What happens when a recursive filter's output gain is set too high for 16-bit audio — the struct.pack overflow, clipping as the fix and its effect on the sound, and choosing a safe gain from the impulse response.",
+      tags: ["DSP", "Python", "Audio"],
+      category: "Technical"
+    },
+    {
       slug: "neural-networks-expressivity-gradients-structure",
       title: "Expressivity, Gradients, and the Structure of Neural Networks",
       date: "2026-09-25",
