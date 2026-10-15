@@ -1,0 +1,122 @@
+<p>From first-order difference equations to a second-order system whose poles set the shape of its impulse response &mdash; and how those pole positions turn into filter coefficients for a real-time resonator.</p>
+
+<h2>What is a first-order difference equation?</h2>
+
+<blockquote>a<sub>0</sub>y(n) + a<sub>1</sub>y(n&minus;1) = b<sub>0</sub>x(n) + b<sub>1</sub>x(n&minus;1), &nbsp; n &isin; &Zopf;</blockquote>
+
+<p>x(n) &rarr; [ ] &rarr; y(n)</p>
+
+<p>WLOG a<sub>0</sub> = 1</p>
+
+<blockquote>y(n) = b<sub>0</sub>x(n) + b<sub>1</sub>x(n&minus;1) &minus; a<sub>1</sub>y(n&minus;1)</blockquote>
+
+<p>If x(&minus;1) = y(&minus;1) = 0, Then we can proceed.</p>
+
+<blockquote>H(z) = (b<sub>0</sub> + b<sub>1</sub>z<sup>&minus;1</sup>) / (1 + a<sub>1</sub>z<sup>&minus;1</sup>) &nbsp;&nbsp; Transfer function</blockquote>
+
+<blockquote>H<sup>f</sup>(&omega;) = &sum;<sub>n</sub> h(n)e<sup>&minus;jn&omega;</sup> = DTFT{h} &nbsp; where h is the impulse response.<br>
+= H(e<sup>j&omega;</sup>) &nbsp; uses b<sub>i</sub> &amp; a<sub>i</sub>.</blockquote>
+
+<h2>What does a second-order system look like?</h2>
+
+<blockquote>y(n) = b<sub>0</sub>x(n) + b<sub>1</sub>x(n&minus;1) + b<sub>2</sub>x(n&minus;2) &minus; a<sub>1</sub>y(n&minus;1) &minus; a<sub>2</sub>y(n&minus;2)</blockquote>
+
+<blockquote>H(z) = (b<sub>0</sub> + b<sub>1</sub>z<sup>&minus;1</sup> + b<sub>2</sub>z<sup>&minus;2</sup>) / (1 + a<sub>1</sub>z<sup>&minus;1</sup> + a<sub>2</sub>z<sup>&minus;2</sup>) = B(z)/A(z)<br>
+= (b<sub>0</sub>z<sup>2</sup> + b<sub>1</sub>z + b<sub>2</sub>) / (z<sup>2</sup> + a<sub>1</sub>z + a<sub>2</sub>) = b<sub>0</sub>(z &minus; z<sub>1</sub>)(z &minus; z<sub>2</sub>) / ((z &minus; p<sub>1</sub>)(z &minus; p<sub>2</sub>))</blockquote>
+
+<h2>How do the poles shape the impulse response?</h2>
+
+<blockquote>p<sub>1</sub> = re<sup>j&omega;<sub>1</sub></sup>, &nbsp; p<sub>2</sub> = re<sup>&minus;j&omega;<sub>1</sub></sup></blockquote>
+
+<figure>
+  <img src="img/dsp-resonator/fig-pole-plot.png" alt="Hand-drawn complex plane with real and imaginary axes: pole p1 sits at distance r from the origin at angle omega-1 from the real axis.">
+  <figcaption>Pole p<sub>1</sub> at radius r and angle &omega;<sub>1</sub>.</figcaption>
+</figure>
+
+<blockquote>h(n) = A<sub>0</sub>&delta;(n) + C<sub>1</sub>p<sub>1</sub><sup>n</sup>u(n) + C<sub>1</sub><sup>*</sup>(p<sub>1</sub><sup>*</sup>)<sup>n</sup>u(n)</blockquote>
+
+<p>u : step fcn. C<sub>1</sub> is determined via partial frac. expansion. C<sub>1</sub> = Re<sup>j&theta;</sup></p>
+
+<blockquote>h(n) = [Re<sup>j&theta;</sup>(re<sup>j&omega;<sub>1</sub></sup>)<sup>n</sup> + Re<sup>&minus;j&theta;</sup>(re<sup>&minus;j&omega;<sub>1</sub></sup>)<sup>n</sup>]u(n)<br>
+= Rr<sup>n</sup>[e<sup>j(&theta; + &omega;<sub>1</sub>n)</sup> + e<sup>&minus;j(&theta; + &omega;<sub>1</sub>n)</sup>]u(n)<br>
+= 2Rr<sup>n</sup> cos(&omega;<sub>1</sub>n + &theta;)u(n)</blockquote>
+
+<figure>
+  <img src="img/dsp-resonator/fig-decaying-response.png" alt="Hand-drawn sketch of h(n): an oscillation whose peaks shrink inside a blue envelope r to the n that narrows toward the n axis.">
+  <figcaption>h(n) oscillates inside the decaying envelope r<sup>n</sup>.</figcaption>
+</figure>
+
+<p>pole radius (r) and angle (&omega;<sub>1</sub>) determines the behavior of the imp resp.</p>
+
+<h2>How do the poles set the filter coefficients?</h2>
+
+<blockquote>H(z) = 1 / (1 + a<sub>1</sub>z<sup>&minus;1</sup> + a<sub>2</sub>z<sup>&minus;2</sup>) = z<sup>2</sup> / (z<sup>2</sup> + a<sub>1</sub>z + a<sub>2</sub>)<br>
+= z<sup>2</sup> / ((z &minus; re<sup>j&omega;<sub>1</sub></sup>)(z &minus; re<sup>&minus;j&omega;<sub>1</sub></sup>))</blockquote>
+
+<blockquote>&rarr; z<sup>2</sup> &minus; z(re<sup>j&omega;<sub>1</sub></sup> + re<sup>&minus;j&omega;<sub>1</sub></sup>) + r<sup>2</sup>e<sup>&minus;j&omega;<sub>1</sub></sup>e<sup>+j&omega;<sub>1</sub></sup><br>
+&rarr; z<sup>2</sup> &minus; z2r cos(&omega;<sub>1</sub>) + r<sup>2</sup><br>
+= z<sup>2</sup> + a<sub>1</sub>z + a<sub>2</sub></blockquote>
+
+<blockquote>a<sub>1</sub> = &minus;2r cos(&omega;<sub>1</sub>) &nbsp;&nbsp;&nbsp; a<sub>2</sub> = r<sup>2</sup></blockquote>
+
+<pre><code>a = [a0  a1  a2]
+a = [1  -2 r cos(om1)   r^2]</code></pre>
+
+<p class="code-file">D3Q5.py</p>
+<pre><code>f1 = 400.0
+om1 = 2.0*pi * f1/Fs
+r = 0.999
+
+a1 = -2*r*cos(om1)
+a2 = r**2</code></pre>
+
+<h2>How do you control how long the response rings?</h2>
+
+<figure>
+  <img src="img/dsp-resonator/fig-decay-time.png" alt="Hand-drawn decaying oscillation starting at amplitude A under an envelope r to the n; a red line marks 0.01A, and the point where the envelope reaches it is labeled N-a on the n axis.">
+  <figcaption>N<sub>a</sub>: where the envelope r<sup>n</sup> falls to 0.01A.</figcaption>
+</figure>
+
+<p>How to set r so that N<sub>a</sub> has a prescribed value? "Given N<sub>a</sub>, how should we set r?"</p>
+
+<blockquote>r<sup>N<sub>a</sub></sup> = 0.01 &nbsp;&nbsp;&nbsp; r = (0.01)<sup>1/N<sub>a</sub></sup><br>
+log r<sup>N<sub>a</sub></sup> = log 0.01<br>
+N<sub>a</sub> log r = log 0.01<br>
+N<sub>a</sub> = log 0.01 / log r</blockquote>
+
+<h2>How do you implement a second-order filter?</h2>
+
+<blockquote>Impulse response &nbsp; h(n) = r<sup>n</sup> cos(&omega;<sub>1</sub>n) u(n)</blockquote>
+
+<blockquote>Z Transform &nbsp; H(z) = (1 &minus; r cos(&omega;<sub>1</sub>) z<sup>&minus;1</sup>) / (1 &minus; 2r cos(&omega;<sub>1</sub>) z<sup>&minus;1</sup> + r<sup>2</sup>z<sup>&minus;2</sup>)</blockquote>
+
+<p>comparing with,</p>
+
+<blockquote>H(z) = (b<sub>0</sub> + b<sub>1</sub>z<sup>&minus;1</sup> + b<sub>2</sub>z<sup>&minus;2</sup>) / (1 + a<sub>1</sub>z<sup>&minus;1</sup> + a<sub>2</sub>z<sup>&minus;2</sup>)<br>
+b<sub>0</sub> = 1, &nbsp; b<sub>1</sub> = &minus;r cos(&omega;<sub>1</sub>), &nbsp; b<sub>2</sub> = 0</blockquote>
+
+<p class="code-file">D3Q5.py</p>
+<pre><code>b0 = 1.0
+b1 = -r * cos(om1)
+b2 = 0.0</code></pre>
+
+<p>Since |h(n)| &le; 1 for all n, the maximum value occurs at n = 0 where h(0) = 1. To ensure signal doesn't exceed 2<sup>15</sup> &minus; 1, using if condition, gain is set to 32767.</p>
+
+<p class="code-file">D3Q5.py</p>
+<pre><code>for n in range(0, int(N)):
+
+    if n == 0:
+        x0 = 1.0
+    else:
+        x0 = 0.0
+
+    y0 = (b0 * x0) + (b1 * x1) + (b2 * x2) - (a1 * y1) - (a2 * y2)
+
+    y2 = y1
+    y1 = y0
+    x2 = x1
+    x1 = x0
+
+    output_value = gain * y0
+    if output_value &gt; 32767: output_value = 32767
+    elif output_value &lt; -32768: output_value = -32768</code></pre>

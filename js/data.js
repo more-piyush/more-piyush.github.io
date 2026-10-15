@@ -45,10 +45,18 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "dsp-second-order-resonator",
+      title: "Second-Order Resonators: Poles, Impulse Response, and Decay",
+      date: "2026-10-15",
+      excerpt: "From first-order difference equations to a second-order system whose pole radius and angle shape its impulse response — deriving the filter coefficients, setting the decay time, and implementing the resonator in Python.",
+      tags: ["DSP", "Python", "Audio"],
+      category: "Technical"
+    },
+    {
       slug: "dsp-gain-clipping-overflow",
       title: "Gain, Clipping, and Overflow in a Recursive Filter",
       date: "2026-10-15",
-      excerpt: "What happens when a recursive filter's output gain is set too high for 16-bit audio — the struct.pack overflow, clipping as the fix and its effect on the sound, and choosing a safe gain from the impulse response.",
+      excerpt: "What happens when a recursive filter's output gain is set too high for 16-bit audio, how clipping prevents the struct.pack overflow, and what clipping does to the sound.",
       tags: ["DSP", "Python", "Audio"],
       category: "Technical"
     },
