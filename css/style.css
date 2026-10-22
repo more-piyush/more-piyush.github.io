@@ -557,6 +557,43 @@ main { flex: 1; }
   margin: 1.5rem 0 0.35rem;
 }
 
+.blog-post .post-body .table-wrap {
+  overflow-x: auto;
+  margin: 1.25rem 0 1.5rem;
+}
+
+.blog-post .post-body table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.blog-post .post-body th,
+.blog-post .post-body td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.45rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+
+.blog-post .post-body th {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.blog-post .post-body td.num,
+.blog-post .post-body th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.blog-post .post-body .table-note {
+  font-size: 0.8125rem;
+  color: var(--text-light);
+  margin-top: -0.75rem;
+}
+
 /* ───── Timeline ───── */
 .timeline {
   margin: 0.5rem 0 1rem;

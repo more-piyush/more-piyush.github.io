@@ -45,6 +45,14 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "cortisol-deconvolution",
+      title: "Deconvolution of Cortisol Measurements",
+      date: "2026-10-21",
+      excerpt: "Recovering hidden cortisol secretory pulses and the infusion and clearance rates from noisy 24-hour serum cortisol data — pre-processing, a two-compartment model solved with coordinate descent and FOCUSS+/GCV-FOCUSS+, results and validation across ten subjects, and the problems faced.",
+      tags: ["Signal Processing", "Biomedical", "MATLAB"],
+      category: "Technical"
+    },
+    {
       slug: "dsp-second-order-resonator",
       title: "Second-Order Resonators: Poles, Impulse Response, and Decay",
       date: "2026-10-15",
