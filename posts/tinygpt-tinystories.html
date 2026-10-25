@@ -1,0 +1,292 @@
+<p>Training a small decoder-only transformer from scratch on TinyStories, a dataset of short, simple stories &mdash; the model, a correctness check that it can memorize one batch, a 25-million-token training run on a laptop GPU, and how its generated stories change from random fragments to readable text.</p>
+
+<h2>What does the model look like?</h2>
+
+<div class="table-wrap">
+<table>
+  <tbody>
+    <tr><th>Architecture</th><td>decoder-only transformer, pre-LayerNorm residual blocks, causal self-attention, GELU MLP (4&times; width)</td></tr>
+    <tr><th>Blocks / width / heads</th><td>6 / 384 / 6 (head dimension 64)</td></tr>
+    <tr><th>Context length</th><td>256 tokens, learned positional embeddings</td></tr>
+    <tr><th>Output</th><td>logits over the vocabulary at every position (softmax gives the next-token distribution); token embedding and output projection share weights</td></tr>
+    <tr><th>Vocabulary</th><td>8,192 byte-level BPE tokens trained on the training split, EOS between stories</td></tr>
+    <tr><th>Parameters</th><td>13,891,584</td></tr>
+    <tr><th>Data</th><td>100,000 training stories (21,611,495 tokens) and 2,000 validation stories (382,835 tokens; fixed 32,768-token evaluation prefix), exact duplicates removed</td></tr>
+    <tr><th>Loss</th><td>average next-token cross-entropy</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The attention calculation is written out explicitly rather than calling a fused kernel. The triangular mask is applied before softmax. Softmax is evaluated in FP32 for numerical stability, then cast back.</p>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>@dataclass
+class ModelConfig:
+    vocab_size: int
+    max_context: int = 256
+    n_layer: int = 6
+    n_head: int = 6
+    d_model: int = 384
+    dropout: float = 0.1</code></pre>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>    def forward(self, x):
+        B, T, D = x.shape
+        q, k, v = self.qkv(x).chunk(3, dim=-1)
+        q, k, v = [t.reshape(B, T, self.heads, self.head_dim).transpose(1, 2)
+                   for t in (q, k, v)]
+        scores = (q @ k.transpose(-2, -1)) / math.sqrt(self.head_dim)
+        scores = scores.masked_fill(~self.allowed[:T, :T], float("-inf"))
+        weights = F.softmax(scores.float(), dim=-1).to(v.dtype)
+        out = self.attn_drop(weights) @ v
+        out = out.transpose(1, 2).contiguous().reshape(B, T, D)
+        return self.out_drop(self.proj(out))</code></pre>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>class Block(nn.Module):
+    def __init__(self, c):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(c.d_model)
+        self.attn = CausalAttention(c)
+        self.norm2 = nn.LayerNorm(c.d_model)
+        self.mlp = nn.Sequential(nn.Linear(c.d_model, 4*c.d_model), nn.GELU(),
+                                 nn.Linear(4*c.d_model, c.d_model), nn.Dropout(c.dropout))
+    def forward(self, x):
+        x = x + self.attn(self.norm1(x))
+        return x + self.mlp(self.norm2(x))</code></pre>
+
+<p>The token embedding and the output projection share one weight matrix, and the forward pass returns raw logits with the cross-entropy loss.</p>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>        h = self.norm(h)
+        logits = F.linear(h, self.token.weight)  # weight tying, no second embedding table
+        loss = None if targets is None else F.cross_entropy(
+            logits.reshape(-1, self.config.vocab_size), targets.reshape(-1))
+        return logits, loss</code></pre>
+
+<h2>How are the stories turned into training examples?</h2>
+
+<p>Byte-level BPE starts with all byte symbols, allowing arbitrary text without a large word vocabulary. EOS is appended once per story. A length T+1 slice produces <code>x = slice[:-1]</code> and <code>y = slice[1:]</code>, and training windows are randomly sampled from the training token stream.</p>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>bpe_trainer = trainers.BpeTrainer(
+    vocab_size=8192 if PROFILE == "full" else 512,
+    min_frequency=2,
+    special_tokens=["&lt;unk&gt;", "&lt;eos&gt;"],
+    initial_alphabet=pre_tokenizers.ByteLevel.alphabet(),
+    show_progress=False,
+)</code></pre>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>def get_batch(tokens, batch_size, context, rng):
+    assert len(tokens) &gt; context
+    starts = rng.integers(0, len(tokens) - context, size=batch_size)
+    z = np.stack([tokens[s:s+context+1] for s in starts]).astype(np.int64)
+    x = torch.from_numpy(z[:, :-1].copy()).to(DEVICE)
+    y = torch.from_numpy(z[:, 1:].copy()).to(DEVICE)
+    return x, y</code></pre>
+
+<h2>Can the model memorize a single batch?</h2>
+
+<p>Full-size model (dropout off, AdamW lr 1e-3, FP32) was trained on one fixed batch of 4 &times; 256 = 1,024 target tokens for 300 updates. Training loss went from 9.063 to 0.0046.</p>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>seed_all(SEED)
+overfit_model = TinyGPT(ModelConfig(VOCAB, dropout=0.0)).to(DEVICE).train()
+xo, yo = get_batch(train_tokens, 4, 256, np.random.default_rng(0))
+optimizer_overfit = torch.optim.AdamW(overfit_model.parameters(), lr=1e-3, weight_decay=0.0)
+overfit_losses = []
+for step in range(300):
+    optimizer_overfit.zero_grad(set_to_none=True)
+    _, loss = overfit_model(xo, yo)
+    loss.backward()
+    optimizer_overfit.step()
+    overfit_losses.append(loss.item())</code></pre>
+
+<figure>
+  <img src="img/tinygpt/fig-overfit-fixed-batch.png" alt="Training loss on a log scale over 300 updates for the full-size model on one fixed batch: it starts near 9, drifts down to about 2 by update 100, drops steeply between updates 100 and 175, and ends below 0.01.">
+  <figcaption>Overfitting one fixed batch with the full-size model.</figcaption>
+</figure>
+
+<h2>How was it trained?</h2>
+
+<div class="table-wrap">
+<table>
+  <tbody>
+    <tr><th>Optimizer</th><td>AdamW, &beta; = (0.9, 0.95); weight decay 0.1 on weight matrices, 0 on biases and LayerNorm</td></tr>
+    <tr><th>Learning rate</th><td>peak 0.0003; linear warmup over 100 updates, then cosine decay to 3e-05</td></tr>
+    <tr><th>Batch</th><td>16,384 target tokens per update = microbatch 32 &times; 2 accumulation steps &times; 256 tokens</td></tr>
+    <tr><th>Length</th><td>1,526 updates, 25,001,984 processed target tokens</td></tr>
+    <tr><th>Other</th><td>FP16 mixed precision with gradient scaling (0 skipped updates), gradient clipping at 1.0, dropout 0.1, validation every 50 updates; checkpoint with lowest validation loss kept</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>@dataclass
+class TrainConfig:
+    context: int
+    microbatch: int = 32
+    tokens_per_update: int = 16384
+    token_budget: int = 25_000_000
+    lr: float = 3e-4
+    weight_decay: float = 0.1
+    eval_every: int = 50
+    seed: int = SEED</code></pre>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>        if step &lt;= warmup: lr = c.lr*step/warmup
+        else:
+            progress = (step-warmup)/max(1, updates-warmup)
+            lr = c.lr*(0.1+0.9*0.5*(1+math.cos(math.pi*progress)))</code></pre>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>        for _ in range(accumulation):
+            x, y = get_batch(train_tokens, c.microbatch, c.context, rng)
+            with autocast_context():
+                _, loss = model(x, y)
+            if not torch.isfinite(loss): raise RuntimeError("Non-finite loss: inspect LR/precision.")
+            step_loss += loss.detach().float().item()/accumulation
+            scaler.scale(loss/accumulation).backward()
+        scaler.unscale_(optimizer)
+        nn.utils.clip_grad_norm_(model.parameters(), 1.0)</code></pre>
+
+<h2>What did I expect before training?</h2>
+
+<p>25 M tokens &rarr; less than 2 tokens per parameter for 13.9 M parameter model, not very compute efficient training, so expecting under-training.</p>
+
+<p>A random model spread probability evenly over 8192 tokens, so loss should be ln(8192) = 9.01.</p>
+
+<p>The model should learn random words and subfragment first, then common words, punctuation, then local grammar and story structure.</p>
+
+<h2>How did the loss fall?</h2>
+
+<figure>
+  <img src="img/tinygpt/fig-loss-curves.png" alt="Training and validation cross-entropy against processed target tokens from 0 to 25 million. Validation loss starts at 9.09 and falls steeply to about 4.3 by 1.6 million tokens, then slowly to 2.22 at 25 million; training loss, measured with dropout on, stays above validation throughout and ends near 2.6. A dashed line marks the halfway samples at 12.5 million tokens.">
+  <figcaption>Training (dropout on) and validation (dropout off) loss against processed target tokens.</figcaption>
+</figure>
+
+<h3>Loss at selected points</h3>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr><th class="num">Update</th><th class="num">Processed tokens</th><th class="num">Train loss</th><th class="num">Validation loss</th><th class="num">Validation perplexity</th></tr>
+  </thead>
+  <tbody>
+    <tr><td class="num">0</td><td class="num">0</td><td class="num">&mdash;</td><td class="num">9.088</td><td class="num">8845.6</td></tr>
+    <tr><td class="num">50</td><td class="num">819,200</td><td class="num">7.653</td><td class="num">6.056</td><td class="num">426.8</td></tr>
+    <tr><td class="num">100</td><td class="num">1,638,400</td><td class="num">5.211</td><td class="num">4.259</td><td class="num">70.7</td></tr>
+    <tr><td class="num">200</td><td class="num">3,276,800</td><td class="num">3.968</td><td class="num">3.555</td><td class="num">35.0</td></tr>
+    <tr><td class="num">300</td><td class="num">4,915,200</td><td class="num">3.575</td><td class="num">3.199</td><td class="num">24.5</td></tr>
+    <tr><td class="num">500</td><td class="num">8,192,000</td><td class="num">3.155</td><td class="num">2.765</td><td class="num">15.9</td></tr>
+    <tr><td class="num">750</td><td class="num">12,288,000</td><td class="num">2.884</td><td class="num">2.502</td><td class="num">12.2</td></tr>
+    <tr><td class="num">1,000</td><td class="num">16,384,000</td><td class="num">2.754</td><td class="num">2.347</td><td class="num">10.5</td></tr>
+    <tr><td class="num">1,250</td><td class="num">20,480,000</td><td class="num">2.647</td><td class="num">2.263</td><td class="num">9.6</td></tr>
+    <tr><td class="num">1,526</td><td class="num">25,001,984</td><td class="num">2.593</td><td class="num">2.220</td><td class="num">9.2</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Metrics</h3>
+
+<div class="table-wrap">
+<table>
+  <tbody>
+    <tr><th>Best Validation Loss</th><td>2.2195 (at the final update, 25,001,984 tokens)</td></tr>
+    <tr><th>Best Validation Perplexity</th><td>9.20 = exp(validation loss)</td></tr>
+    <tr><th>Training Time</th><td>2,443 s (40.7 min) of optimizer steps; 2,486 s including periodic evaluation and sampling</td></tr>
+    <tr><th>Throughput</th><td>10,235 target tokens per second</td></tr>
+    <tr><th>Peak GPU Memory</th><td>2.34 GiB allocated</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>How do the generated stories change during training?</h2>
+
+<p>Prompts were fixed before any output was generated. Same settings at every checkpoint: temperature 0.8, top-k 50, at most 80 new tokens, stop at end-of-story, fixed seed per prompt. Checkpoints: before training (0 tokens), halfway (update 763, 12,500,992 tokens) and the end of training (25,001,984 tokens). Prompt text is in bold.</p>
+
+<p class="code-file">Q3_TinyGPT.ipynb</p>
+<pre><code>PROMPTS = [
+    "One day, a girl named Lily went to the park with her dog. She",
+    "Tom was sad because his kite was stuck in a tall tree. He",
+    "\"Can I play with you?\" asked the little bird.",
+]  # chosen before inspecting any generated output
+def sample_set(model, context):
+    return [generate(model, p, context, max_new_tokens=80 if PROFILE == "full" else 20,
+                     temperature=0.8, top_k=min(50, VOCAB), seed=100+i)
+            for i, p in enumerate(PROMPTS)]</code></pre>
+
+<h3>Before training</h3>
+
+<blockquote>
+<p><strong>One day, a girl named Lily went to the park with her dog. She</strong> let valuableon fell tomatoesissabby below differen seek slow greedy lettern familiarounced nolets size fellLila leap gratitudeœIf beautiomes peeledeseYes def separ steelivery noœItances dare excitementJerry repair askscer insects beadsomes summerHow disg disg settKim naught lux lamp baths behave cuddles Lizzie Lizzie curiosityivery Are pulledgain strip twinkling hand sucinkle eight beadsbow visiting become gem ripitc naughtau</p>
+<p><strong>Tom was sad because his kite was stuck in a tall tree. He</strong> clearing poppies tummy stomped wouldn speaking puzzled leader baskets baskets streets gasp eat rip desp woof cupboard disappearedolin waff disturbandaandalewlew pra pra cond" size pl Upbig same wagging arrows burst swinging welcomed hanging creat bellsanna poppies ent mild wings eaten notice giggled flags string Binky feelilla spl tal hawk pitch welcomed Em favorite cleaned thickœThank including scare receive slam break forœWell scored object fingersbbie spl pastabies craft</p>
+<p><strong>"Can I play with you?" asked the little bird.</strong> gratitude steal while Binkyget neighbourhood&#65533; bar stripes recommended tumbledren steal gratitude settledceLet sneak dr sizeese ignored pi caterp picked seeds hairdress hairdress&#65533;&#65533; winkedMay traveled lastbigbig hurric destro gratitudeœIfbby heightbby closely Joe fancy poison baker determterday petals tooth grapes taste Timmysers Leo fest wraps Speedy stripes Birvery lampJerryJerry independent including superheroesto cra surpr hated boats lollipops vel hangidaycom pears</p>
+</blockquote>
+
+<h3>Halfway (12.5 M tokens)</h3>
+
+<blockquote>
+<p><strong>One day, a girl named Lily went to the park with her dog. She</strong> saw a big hat that was too long. Lily wanted to play with it, but it had not to go away.</p>
+<p>Later that day, Lily's mom asked her to take the slide. Lily found a big red truck and ran to the sun. Lily was happy and was back to her mom. But her mom said, "Lily, you are brave and smart. You are very polite</p>
+<p><strong>Tom was sad because his kite was stuck in a tall tree. He</strong> wanted to climb it, but it was too high.</p>
+<p>One day, he saw a bright red bird with it. The bird wanted to play with the bird. The bird flew away and tried to play it. But the bird did not move. The bird did not listen to the bird. It flew away and the bird flew away.</p>
+<p>But it was too hard for the bird.</p>
+<p><strong>"Can I play with you?" asked the little bird.</strong> "I can borrow it again?"</p>
+<p>The little bird replied. "I don't want to try it. Maybe no, I can have it." The little bird said, "No, I need to find it, but it will be fun." The bird wanted to help the bird.</p>
+<p>The bird looked at the bird and showed the bird some yummy bird. The bird said, "</p>
+</blockquote>
+
+<h3>End of training (25 M tokens)</h3>
+
+<blockquote>
+<p><strong>One day, a girl named Lily went to the park with her dog. She</strong> saw a big tree that was too long. Lily wanted to play with the ball. When she got to the ball, she saw a rock that it didn't move. The ball broke into its mouth and Lily felt sad.</p>
+<p>But then, Lily's mom came running and saw that Lily was crying. She told Lily that Lily was sad and didn't know what to do. Her mom came</p>
+<p><strong>Tom was sad because his kite was stuck in a tall tree. He</strong> wanted to climb it, but it was too high.</p>
+<p>Tom did not know what to do. He ran to the tree and saw a bird. The bird wanted to catch the bird and watch the bird. Tom said, "No, no. We are trying to break it. We can go back the tree."</p>
+<p>The bird said, "No, you don't want it.</p>
+<p><strong>"Can I play with you?" asked the little bird.</strong></p>
+<p>"Sure, please. It's very hard and make a mess. How about that?" the bird said.</p>
+<p>The bird thought about it and thought it would be fun to catch. He said to the bird, "Can I play with the bird?"</p>
+<p>The bird said, "Yes, please. I will take it to the bird. It is fun."</p>
+<p>The</p>
+</blockquote>
+
+<h2>What improves, and what errors remain?</h2>
+
+<p><strong>Before training:</strong> random vocabulary items and fragments, no relation with prompt, consistent with near uniform output distribution.</p>
+
+<p><strong>Mid training (12.5 M tokens, val. loss 2.5):</strong> real sentences, punctuations, quotation, paragraph breaks. Continuation relevant to prompts. Errors: character mixup, repetition, broken grammar ("it had not to go away"), odd events ("ran to the sun").</p>
+
+<p><strong>End of training (val. loss 2.2):</strong> smoother text, emotion understanding, dialogue alternate correct between speakers. Errors that remain:</p>
+
+<ul>
+  <li>Odd events &mdash; ("ball broke into its mouth")</li>
+  <li>Confused references &mdash; ("She told Lily that Lily was sad")</li>
+  <li>model can't keep track of who is who</li>
+</ul>
+
+<p><strong>Training loss sits above validation loss:</strong></p>
+
+<ul>
+  <li>measured with dropout on</li>
+  <li>validation loss uses current weight with dropout off</li>
+</ul>
+
+<p><strong>Why is the validation loss 2.2 and not 1.3 &ndash; 1.5?</strong></p>
+
+<ul>
+  <li>conservative learning rate</li>
+  <li>dropout 0.1 slow fitting</li>
+  <li>curve was still falling</li>
+</ul>
+
+<h2>References</h2>
+
+<ol>
+  <li>TinyStories dataset &mdash; <a href="https://huggingface.co/datasets/roneneldan/TinyStories">huggingface.co/datasets/roneneldan/TinyStories</a></li>
+  <li>TinyStories paper &mdash; <a href="https://arxiv.org/abs/2305.07759">arxiv.org/abs/2305.07759</a></li>
+  <li>nanoGPT repository &mdash; <a href="https://github.com/karpathy/nanoGPT">github.com/karpathy/nanoGPT</a></li>
+  <li>Hugging Face Tokenizers quicktour &mdash; <a href="https://huggingface.co/docs/tokenizers/python/latest/quicktour.html">huggingface.co/docs/tokenizers/python/latest/quicktour.html</a></li>
+</ol>

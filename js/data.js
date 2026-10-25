@@ -45,6 +45,22 @@ const DATA = {
 
   blogPosts: [
     {
+      slug: "tinygpt-tinystories",
+      title: "Training a TinyGPT on TinyStories",
+      date: "2026-10-25",
+      excerpt: "Training a 13.9M-parameter decoder-only transformer from scratch on 25 million TinyStories tokens — the model, a one-batch overfitting check, the training run, and how its generated stories change from random fragments to readable text.",
+      tags: ["Deep Learning", "Transformers", "PyTorch"],
+      category: "Technical"
+    },
+    {
+      slug: "vision-transformers-fashionmnist",
+      title: "Vision Transformers on FashionMNIST",
+      date: "2026-10-25",
+      excerpt: "Why self-attention can be computed in linear time, how a Vision Transformer turns an image into tokens, and what 18 ViTs varying patch size, depth and heads reveal on FashionMNIST.",
+      tags: ["Deep Learning", "Transformers", "PyTorch"],
+      category: "Technical"
+    },
+    {
       slug: "cortisol-deconvolution",
       title: "Deconvolution of Cortisol Measurements",
       date: "2026-10-21",

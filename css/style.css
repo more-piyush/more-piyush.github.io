@@ -557,6 +557,12 @@ main { flex: 1; }
   margin: 1.5rem 0 0.35rem;
 }
 
+.blog-post .post-body p,
+.blog-post .post-body li,
+.blog-post .post-body blockquote {
+  overflow-wrap: anywhere;
+}
+
 .blog-post .post-body .table-wrap {
   overflow-x: auto;
   margin: 1.25rem 0 1.5rem;

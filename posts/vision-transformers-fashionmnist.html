@@ -1,0 +1,221 @@
+<p>Classifying FashionMNIST clothing images with Vision Transformers instead of a dense network &mdash; why attention can be made linear in the number of tokens, how a ViT turns an image into tokens, and what happens across 18 models that vary the patch size, depth and number of heads.</p>
+
+<p>An <a href="post.html?slug=neural-networks-expressivity-gradients-structure">earlier post</a> trained a dense network (784 &rarr; 256 &rarr; 128 &rarr; 64 &rarr; 10) on the same dataset with the same pixel normalization.</p>
+
+<h2>Why is self-attention quadratic, and can it be made linear?</h2>
+
+<p>Let sequence length be T, each query and key has dimension d, each value has dimension d<sub>v</sub>.</p>
+
+<p>In self-attention layer each query is compared with all T keys which creates T &times; T score matrix, computing those scores requires O(T<sup>2</sup>d) operations, so cost grows quadratically with sequence length.</p>
+
+<p>In linear attention, the exponentials are dropped and attention score between query q<sub>i</sub> and key k<sub>j</sub> is q<sub>i</sub><sup>T</sup>k<sub>j</sub>. The output token i is</p>
+
+<blockquote>y<sub>i</sub><sup>T</sup> = &sum;<sub>j=1</sub><sup>T</sup> (q<sub>i</sub><sup>T</sup>k<sub>j</sub>) v<sub>j</sub><sup>T</sup> &nbsp;/&nbsp; &sum;<sub>j=1</sub><sup>T</sup> q<sub>i</sub><sup>T</sup>k<sub>j</sub></blockquote>
+
+<p>solving numerator,</p>
+
+<blockquote>&sum;<sub>j=1</sub><sup>T</sup> (q<sub>i</sub><sup>T</sup>k<sub>j</sub>) v<sub>j</sub><sup>T</sup> = q<sub>i</sub><sup>T</sup> &sum;<sub>j=1</sub><sup>T</sup> k<sub>j</sub>v<sub>j</sub><sup>T</sup></blockquote>
+
+<p>solving denominator,</p>
+
+<blockquote>&sum;<sub>j=1</sub><sup>T</sup> q<sub>i</sub><sup>T</sup>k<sub>j</sub> = q<sub>i</sub><sup>T</sup> (&sum;<sub>j=1</sub><sup>T</sup> k<sub>j</sub>)</blockquote>
+
+<p>By using matrix multiplication associativity, we can compute</p>
+
+<blockquote>S = K<sup>T</sup>V &isin; &Ropf;<sup>d&times;d<sub>v</sub></sup>, &nbsp;&nbsp; z = K<sup>T</sup>&middot;1 &isin; &Ropf;<sup>d</sup></blockquote>
+
+<p>1 &rarr; all vector are ones. S and z don't depend on token i. Output is</p>
+
+<blockquote>y<sub>i</sub><sup>T</sup> = q<sub>i</sub><sup>T</sup>S / q<sub>i</sub><sup>T</sup>z</blockquote>
+
+<p>avoiding the formation of T &times; T attention matrix QK<sup>T</sup>.</p>
+
+<ul>
+  <li>computing cost of S &rarr; O(Tdd<sub>v</sub>)</li>
+  <li>computing cost of z &rarr; O(Td)</li>
+  <li>computing q<sub>i</sub><sup>T</sup>S and q<sub>i</sub><sup>T</sup>z for all token costs O(Tdd<sub>v</sub> + Td)</li>
+  <li>normalizing output rows costs O(Td<sub>v</sub>)</li>
+</ul>
+
+<p>Total runtime</p>
+
+<blockquote>O(Tdd<sub>v</sub> + Td + Td<sub>v</sub>) = O(T)</blockquote>
+
+<p>feature dimensions d and d<sub>v</sub> &rarr; fixed independently of T.</p>
+
+<h2>How does a Vision Transformer read an image?</h2>
+
+<p>28&times;28 images &rarr; 49 patches (4&times;4) or 16 patches (7&times;7), plus a learnable [CLS] token. <code>Patchify</code> cuts each image into non-overlapping P&times;P patches (with <code>unfold</code>) and maps each flattened patch to a 96-dim token. A learnable [CLS] token is prepended, learned position embeddings are added, and the [CLS] output after the last block is classified.</p>
+
+<p class="code-file">Q2_ViT_FashionMNIST.ipynb</p>
+<pre><code>class Patchify(nn.Module):
+    def __init__(self, patch, d_model):
+        super().__init__()
+        self.patch = patch
+        self.proj = nn.Linear(patch * patch, d_model)
+    def forward(self, x):                                   # x: (B, 1, 28, 28)
+        p = F.unfold(x, kernel_size=self.patch, stride=self.patch)   # (B, P*P, N)
+        return self.proj(p.transpose(1, 2))                 # (B, N, d_model)</code></pre>
+
+<p>Attention is softmax(QK<sup>T</sup>/&radic;d)&middot;V per head, computed with PyTorch's fused <code>scaled_dot_product_attention</code> kernel (no mask, since every patch may attend to every other patch).</p>
+
+<p class="code-file">Q2_ViT_FashionMNIST.ipynb</p>
+<pre><code>class SelfAttention(nn.Module):
+    def __init__(self, d_model, heads, dropout):
+        super().__init__()
+        assert d_model % heads == 0
+        self.heads, self.head_dim = heads, d_model // heads
+        self.qkv = nn.Linear(d_model, 3 * d_model)
+        self.out = nn.Linear(d_model, d_model)
+        self.dropout = dropout
+    def forward(self, x):
+        B, N, D = x.shape
+        q, k, v = self.qkv(x).reshape(B, N, 3, self.heads, self.head_dim).permute(2, 0, 3, 1, 4)
+        # Same as softmax(q @ k^T / sqrt(head_dim)) @ v with dropout on the weights, in one fused kernel.
+        # No causal mask: every patch can attend to every other patch.
+        mixed = F.scaled_dot_product_attention(q, k, v, dropout_p=self.dropout if self.training else 0.0)
+        return self.out(mixed.transpose(1, 2).reshape(B, N, D))</code></pre>
+
+<p class="code-file">Q2_ViT_FashionMNIST.ipynb</p>
+<pre><code>class EncoderBlock(nn.Module):
+    def __init__(self, d_model, heads, mlp_dim, dropout):
+        super().__init__()
+        self.norm1, self.attn = nn.LayerNorm(d_model), SelfAttention(d_model, heads, dropout)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.mlp = nn.Sequential(nn.Linear(d_model, mlp_dim), nn.GELU(), nn.Dropout(dropout),
+                                 nn.Linear(mlp_dim, d_model), nn.Dropout(dropout))
+    def forward(self, x):
+        x = x + self.attn(self.norm1(x))
+        return x + self.mlp(self.norm2(x))</code></pre>
+
+<p class="code-file">Q2_ViT_FashionMNIST.ipynb</p>
+<pre><code>    def forward(self, x):
+        h = self.patchify(x)
+        h = torch.cat([self.cls.expand(len(h), -1, -1), h], dim=1) + self.pos
+        for block in self.blocks: h = block(h)
+        return self.head(self.norm(h[:, 0]))               # classify from the [CLS] token</code></pre>
+
+<h2>What was compared, and how were the models trained?</h2>
+
+<div class="table-wrap">
+<table>
+  <tbody>
+    <tr><th>Grid</th><td>patch size {4&times;4, 7&times;7} &times; layers {4, 6, 8} &times; heads {2, 3, 4} = 18 models</td></tr>
+    <tr><th>Tokens per image</th><td>49 patches + [CLS] = 50 (4&times;4); 16 patches + [CLS] = 17 (7&times;7)</td></tr>
+    <tr><th>Architecture</th><td>linear patch embedding, learnable [CLS] token, learned position embeddings, pre-LayerNorm encoder blocks, width 96, MLP width 384 with GELU, dropout 0.1, classifier on [CLS]</td></tr>
+    <tr><th>Head dimension</th><td>48 (2 heads), 32 (3 heads), 24 (4 heads); width is the same for all head counts</td></tr>
+    <tr><th>Optimizer</th><td>AdamW, LR 0.001, weight decay 0.05 (weight matrices only), batch 256, gradient clipping 1.0</td></tr>
+    <tr><th>Schedule</th><td>1 warmup epoch, then cosine decay to 0; 10 epochs</td></tr>
+    <tr><th>Data</th><td>60,000 train / 10,000 test images, normalized; random horizontal flip during training</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Same optimizer, schedule, epochs and seed for every configuration, so differences come from the architecture. The test set is never used to pick epochs or hyperparameters: the reported number is the accuracy after the last epoch.</p>
+
+<p class="code-file">Q2_ViT_FashionMNIST.ipynb</p>
+<pre><code>HP = dict(d_model=96, mlp_dim=384, dropout=0.1, batch_size=256, lr=1e-3, weight_decay=0.05,
+          warmup_epochs=1, epochs=EPOCHS, grad_clip=1.0)</code></pre>
+
+<p class="code-file">Q2_ViT_FashionMNIST.ipynb</p>
+<pre><code>            flip = torch.rand(len(xb), device=DEVICE, generator=gen) &lt; 0.5
+            xb = torch.where(flip[:, None, None, None], xb.flip(-1), xb)
+            step += 1
+            lr = HP["lr"] * (step / warmup if step &lt;= warmup
+                             else 0.5 * (1 + math.cos(math.pi * (step - warmup) / (total - warmup))))
+            for g in opt.param_groups: g["lr"] = lr</code></pre>
+
+<p class="code-file">Q2_ViT_FashionMNIST.ipynb</p>
+<pre><code>GRID = [(p, l, h) for p in (4, 7) for l in (4, 6, 8) for h in (2, 3, 4)]</code></pre>
+
+<h2>What did I expect before training?</h2>
+
+<p><strong>4&times;4 Patches and 7&times;7 patches.</strong> For 28 &times; 28 image size, 4&times;4 patches has 49 tokens whereas 7&times;7 patches need 16 tokens. Attention cost is square of token count, and MLP cost grows N, so 4&times;4 cost more. The 7&times;7 patch is small enough to learn clothing shapes. So, 4&times;4 patch won't have much accuracy gain, but much higher cost.</p>
+
+<p>Deeper models optimize slowly, so will have slight improvements beyond 4 to 6 layers.</p>
+
+<p>For a fixed width, more heads simply implies heads with smaller size with same number of parameters, so there will be small effect.</p>
+
+<p>Unlike CNNs, ViT don't exploit the concept of locality and spatial invariance, so ViT will have an accuracy about CNNs, not more than them.</p>
+
+<h2>How accurate were the models?</h2>
+
+<h3>Test accuracy (%) after 10 epochs</h3>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr><th>Patch</th><th class="num">Layers</th><th class="num">Parameters</th><th class="num">2 Heads</th><th class="num">3 Heads</th><th class="num">4 Heads</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>4&times;4</td><td class="num">4</td><td class="num">455,050</td><td class="num">88.27</td><td class="num">88.86</td><td class="num">88.49</td></tr>
+    <tr><td>4&times;4</td><td class="num">6</td><td class="num">678,730</td><td class="num">89.41</td><td class="num">88.92</td><td class="num">88.94</td></tr>
+    <tr><td>4&times;4</td><td class="num">8</td><td class="num">902,410</td><td class="num">88.83</td><td class="num">88.62</td><td class="num">88.93</td></tr>
+    <tr><td>7&times;7</td><td class="num">4</td><td class="num">455,050</td><td class="num">88.43</td><td class="num">88.96</td><td class="num">88.82</td></tr>
+    <tr><td>7&times;7</td><td class="num">6</td><td class="num">678,730</td><td class="num">88.42</td><td class="num">89.18</td><td class="num">89.24</td></tr>
+    <tr><td>7&times;7</td><td class="num">8</td><td class="num">902,410</td><td class="num">88.87</td><td class="num">88.98</td><td class="num">89.02</td></tr>
+  </tbody>
+</table>
+</div>
+
+<figure>
+  <img src="img/vit/fig-accuracy-grid.png" alt="Two line charts of FashionMNIST test accuracy after 10 epochs against ViT layers 4, 6 and 8, one line per head count. For 4x4 patches, 2 heads peaks at 89.41 percent at 6 layers. For 7x7 patches, 3 and 4 heads peak near 89.2 percent at 6 layers while 2 heads stays near 88.4 percent until 8 layers.">
+  <figcaption>FashionMNIST test accuracy after 10 epochs, by patch size, depth and heads.</figcaption>
+</figure>
+
+<h3>By patch size</h3>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr><th></th><th class="num">4&times;4 patches</th><th class="num">7&times;7 patches</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Mean test accuracy (%)</td><td class="num">88.81</td><td class="num">88.88</td></tr>
+    <tr><td>Range of test accuracy (%)</td><td class="num">88.27 &ndash; 89.41</td><td class="num">88.42 &ndash; 89.24</td></tr>
+    <tr><td>Mean final train accuracy (%)</td><td class="num">90.12</td><td class="num">90.83</td></tr>
+    <tr><td>Mean training time per model (s)</td><td class="num">339</td><td class="num">115</td></tr>
+    <tr><td>Training time range (s)</td><td class="num">219 &ndash; 455</td><td class="num">76 &ndash; 156</td></tr>
+    <tr><td>Peak GPU memory (GB)</td><td class="num">0.44 &ndash; 0.63</td><td class="num">0.30 &ndash; 0.38</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Test accuracy (%) by epoch, for 4 heads</h3>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr><th>Model</th><th class="num">1</th><th class="num">2</th><th class="num">3</th><th class="num">4</th><th class="num">5</th><th class="num">6</th><th class="num">7</th><th class="num">8</th><th class="num">9</th><th class="num">10</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>4&times;4, 4 layers</td><td class="num">73.4</td><td class="num">80.7</td><td class="num">82.4</td><td class="num">84.0</td><td class="num">85.6</td><td class="num">86.9</td><td class="num">87.9</td><td class="num">87.9</td><td class="num">88.6</td><td class="num">88.5</td></tr>
+    <tr><td>4&times;4, 6 layers</td><td class="num">74.6</td><td class="num">81.2</td><td class="num">83.2</td><td class="num">83.3</td><td class="num">86.4</td><td class="num">87.2</td><td class="num">88.0</td><td class="num">88.4</td><td class="num">88.8</td><td class="num">88.9</td></tr>
+    <tr><td>4&times;4, 8 layers</td><td class="num">63.4</td><td class="num">80.3</td><td class="num">82.6</td><td class="num">84.0</td><td class="num">86.5</td><td class="num">87.4</td><td class="num">88.0</td><td class="num">88.5</td><td class="num">89.0</td><td class="num">88.9</td></tr>
+    <tr><td>7&times;7, 4 layers</td><td class="num">77.6</td><td class="num">82.5</td><td class="num">83.9</td><td class="num">85.1</td><td class="num">86.9</td><td class="num">87.7</td><td class="num">87.8</td><td class="num">88.7</td><td class="num">88.8</td><td class="num">88.8</td></tr>
+    <tr><td>7&times;7, 6 layers</td><td class="num">77.3</td><td class="num">83.1</td><td class="num">84.6</td><td class="num">84.9</td><td class="num">87.0</td><td class="num">87.7</td><td class="num">88.4</td><td class="num">88.8</td><td class="num">89.1</td><td class="num">89.2</td></tr>
+    <tr><td>7&times;7, 8 layers</td><td class="num">75.0</td><td class="num">81.5</td><td class="num">84.2</td><td class="num">84.7</td><td class="num">86.9</td><td class="num">87.3</td><td class="num">88.5</td><td class="num">88.6</td><td class="num">89.1</td><td class="num">89.0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<figure>
+  <img src="img/vit/fig-learning-curves.png" alt="Two line charts for the 4-head models over 10 epochs. Training loss falls from about 1.0 to 1.2 at epoch 1 to about 0.25 at epoch 10 for all six models. Test accuracy rises from 63 to 78 percent at epoch 1 to about 88.5 to 89.2 percent at epoch 10, with the 4x4, 8-layer model starting lowest.">
+  <figcaption>Training loss and test accuracy by epoch for the 4-head models.</figcaption>
+</figure>
+
+<h2>What do the results say?</h2>
+
+<p>All models lie in range 88.27% &ndash; 89.41% with a distribution of only 1.1, most of these errors can be associated as standard error.</p>
+
+<p>The mean accuracy of 4&times;4 patches is 88.81% v/s 88.88% of 7&times;7 patches while the compute cost takes 4&times;4 patches takes 339s v/s 7&times;7 patches 115s, thus 4&times;4 patches isn't reasonable for the cost.</p>
+
+<ul>
+  <li>4 layers is lowest for both patches</li>
+  <li>6 layers improves a little</li>
+  <li>8 layer remains stagnant</li>
+</ul>
+
+<p>Heads don't change the parameter count, heads just partition the dimension.</p>
+
+<p>Deeper model start slower, model are undertrained and more epochs could improve performance a bit.</p>
